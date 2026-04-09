@@ -1,4 +1,4 @@
-import { DiscoveryScreen } from "@/src/features/discovery/screens/discovery-screen";
+import { DiscoveryScreen } from "@/features/discovery/screens/discovery-screen";
 
 export default function DiscoveryRoute() {
     return <DiscoveryScreen />;

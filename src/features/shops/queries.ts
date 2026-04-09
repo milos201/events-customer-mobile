@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getPublicCompanyBundleBySlug } from "@/src/api/companies";
+import { getPublicCompanyBundleBySlug } from "@/api/companies";
 
 export function usePublicCompanyBundle(slug: string) {
     return useQuery({

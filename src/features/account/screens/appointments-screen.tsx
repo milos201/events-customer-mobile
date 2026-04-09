@@ -1,5 +1,5 @@
 import { ThemedText } from "@/components/themed-text";
-import { ActionGroup, ActionLink, BackAction, BulletList, ScreenShell, SectionCard } from "@/src/ui/screen-shell";
+import { ActionGroup, ActionLink, BackAction, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
 
 export function AppointmentsScreen() {
     return (

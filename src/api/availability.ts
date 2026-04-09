@@ -1,5 +1,5 @@
-import { apiGet } from "@/src/api/http";
-import type { AvailabilityResult } from "@/src/api/types";
+import { apiGet } from "@/api/http";
+import type { AvailabilityResult } from "@/api/types";
 
 type AvailabilityInput =
     | {

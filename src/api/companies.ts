@@ -1,5 +1,5 @@
-import { apiGet } from "@/src/api/http";
-import type { CompanyDetails, PaginatedResult, PublicCompany, PublicCompanyBundle, Service } from "@/src/api/types";
+import { apiGet } from "@/api/http";
+import type { CompanyDetails, PaginatedResult, PublicCompany, PublicCompanyBundle, Service } from "@/api/types";
 
 type ListPublicCompaniesInput = {
     cursor?: string;

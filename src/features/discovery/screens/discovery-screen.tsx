@@ -1,7 +1,7 @@
 import { ThemedText } from "@/components/themed-text";
-import { usePublicCompanies } from "@/src/features/discovery/queries";
-import { apiBaseUrl } from "@/src/lib/config";
-import { ActionGroup, ActionLink, BulletList, ScreenShell, SectionCard } from "@/src/ui/screen-shell";
+import { usePublicCompanies } from "@/features/discovery/queries";
+import { apiBaseUrl } from "@/lib/config";
+import { ActionGroup, ActionLink, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
 
 export function DiscoveryScreen() {
     const companiesQuery = usePublicCompanies();

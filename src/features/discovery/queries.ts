@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { listPublicCompanies } from "@/src/api/companies";
+import { listPublicCompanies } from "@/api/companies";
 
 export function usePublicCompanies() {
     return useQuery({

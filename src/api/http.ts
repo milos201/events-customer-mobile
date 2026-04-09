@@ -1,4 +1,4 @@
-import { apiV1Url } from "@/src/lib/config";
+import { apiV1Url } from "@/lib/config";
 
 type QueryValue = string | number | boolean | null | undefined;
 

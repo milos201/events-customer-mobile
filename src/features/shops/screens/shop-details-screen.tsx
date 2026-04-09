@@ -1,8 +1,8 @@
 import { useLocalSearchParams } from "expo-router";
 
 import { ThemedText } from "@/components/themed-text";
-import { usePublicCompanyBundle } from "@/src/features/shops/queries";
-import { ActionGroup, ActionLink, BackAction, BulletList, ScreenShell, SectionCard } from "@/src/ui/screen-shell";
+import { usePublicCompanyBundle } from "@/features/shops/queries";
+import { ActionGroup, ActionLink, BackAction, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
 
 export function ShopDetailsScreen() {
     const { shopId } = useLocalSearchParams<{ shopId: string }>();

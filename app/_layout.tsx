@@ -4,7 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { AppProviders } from "@/src/providers/app-providers";
+import { AppProviders } from "@/providers/app-providers";
 
 export const unstable_settings = {
     anchor: "(public)",
@@ -18,7 +18,6 @@ export default function RootLayout() {
             <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
                 <Stack>
                     <Stack.Screen name="(public)" options={{ headerShown: false }} />
-                    <Stack.Screen name="booking/[shopId]" options={{ headerShown: false }} />
                     <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                     <Stack.Screen name="(customer)" options={{ headerShown: false }} />
                 </Stack>
