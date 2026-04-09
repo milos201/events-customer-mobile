@@ -67,7 +67,7 @@ export function ShopDetailsScreen() {
                                 key={service.id}
                                 href={{
                                     pathname: "/booking/[shopId]",
-                                    params: { shopId: resolvedShopId },
+                                    params: { shopId: resolvedShopId, serviceId: String(service.id) },
                                 }}
                                 label={`${service.name} · ${service.durationMinutes} min`}
                                 variant="secondary"

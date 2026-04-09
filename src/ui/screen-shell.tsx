@@ -35,6 +35,13 @@ type BackActionProps = {
     variant?: "primary" | "secondary";
 };
 
+type ActionButtonProps = {
+    label: string;
+    onPress: () => void;
+    variant?: "primary" | "secondary";
+    trailing?: ReactNode;
+};
+
 export function ScreenShell({ eyebrow, title, description, children }: ScreenShellProps) {
     return (
         <ThemedView style={styles.screen}>
@@ -91,6 +98,20 @@ export function ActionLink({ href, label, variant = "primary", trailing }: Actio
 
 export function ActionGroup({ children }: ActionGroupProps) {
     return <View style={styles.actionGroup}>{children}</View>;
+}
+
+export function ActionButton({ label, onPress, variant = "primary", trailing }: ActionButtonProps) {
+    return (
+        <Pressable
+            style={[styles.action, variant === "secondary" ? styles.actionSecondary : styles.actionPrimary]}
+            onPress={onPress}
+        >
+            <ThemedText style={[styles.actionText, variant === "secondary" ? styles.actionTextSecondary : null]}>
+                {label}
+            </ThemedText>
+            {trailing}
+        </Pressable>
+    );
 }
 
 export function BackAction({ label, fallbackHref, variant = "secondary" }: BackActionProps) {

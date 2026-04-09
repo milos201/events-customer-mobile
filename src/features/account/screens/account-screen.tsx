@@ -1,6 +1,10 @@
-import { ActionGroup, ActionLink, BackAction, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
+import { ThemedText } from "@/components/themed-text";
+import { useAuthSession } from "@/features/auth/session-provider";
+import { ActionButton, ActionGroup, ActionLink, BackAction, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
 
 export function AccountScreen() {
+    const { signOut, user } = useAuthSession();
+
     return (
         <ScreenShell
             eyebrow="Customer Area"
@@ -15,6 +19,17 @@ export function AccountScreen() {
                 </ActionGroup>
             </SectionCard>
 
+            <SectionCard title="Current session">
+                <BulletList items={[user?.name ?? "Unknown customer", user?.email ?? "No email available"]} />
+                <ActionButton
+                    label="Sign out"
+                    variant="secondary"
+                    onPress={() => {
+                        void signOut();
+                    }}
+                />
+            </SectionCard>
+
             <SectionCard title="MVP scope">
                 <BulletList
                     items={[
@@ -23,6 +38,7 @@ export function AccountScreen() {
                         "Session management and sign-out.",
                     ]}
                 />
+                <ThemedText>The customer area is now gated by session state from the app shell.</ThemedText>
             </SectionCard>
         </ScreenShell>
     );

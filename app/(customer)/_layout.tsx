@@ -1,12 +1,23 @@
-import { Tabs } from "expo-router";
+import { Redirect, Tabs, usePathname } from "expo-router";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors } from "@/constants/theme";
+import { useAuthSession } from "@/features/auth/session-provider";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export default function CustomerLayout() {
     const colorScheme = useColorScheme();
+    const pathname = usePathname();
+    const { status } = useAuthSession();
+
+    if (status === "loading") {
+        return null;
+    }
+
+    if (status !== "authenticated") {
+        return <Redirect href={{ pathname: "/sign-in", params: { returnTo: pathname } }} />;
+    }
 
     return (
         <Tabs

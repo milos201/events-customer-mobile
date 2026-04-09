@@ -5,6 +5,8 @@ export type PaginatedResult<T> = {
 
 export type CompanyStatus = "pending" | "approved" | "rejected";
 export type CompanyEmployeeRole = "owner" | "employee" | "manager";
+export type AppointmentStatus = "pending" | "confirmed" | "rejected" | "cancelled" | "completed" | "noShow";
+export type AppointmentBookedFrom = "public" | "dashboard" | "admin";
 
 export type VisibleUser = {
     id: string;
@@ -69,4 +71,54 @@ export type AvailabilityResult = {
 export type PublicCompanyBundle = {
     company: CompanyDetails;
     services: Service[];
+};
+
+export type AppointmentVisibleUser = {
+    id: string;
+    name: string | null;
+    image: string | null;
+};
+
+export type AppointmentCompanySummary = {
+    id: number;
+    name: string;
+    slug: string;
+};
+
+export type AppointmentRecord = {
+    id: number;
+    companyId: number;
+    employeeId: string;
+    userId: string;
+    serviceId: number;
+    startsAt: string;
+    endsAt: string;
+    status: AppointmentStatus;
+    customerNameSnapshot: string | null;
+    customerPhoneSnapshot: string | null;
+    customerEmailSnapshot: string | null;
+    serviceNameSnapshot: string;
+    serviceDurationMinutesSnapshot: number;
+    servicePriceCentsSnapshot: number;
+    notesCustomer: string | null;
+    notesInternal: string | null;
+    bookedFrom: AppointmentBookedFrom;
+    cancelledAt: string | null;
+    rejectedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    company: AppointmentCompanySummary | null;
+    employee: AppointmentVisibleUser | null;
+    customer: AppointmentVisibleUser | null;
+};
+
+export type ApiValidationError = {
+    message: string;
+    path?: string[];
+};
+
+export type ApiErrorBody = {
+    message?: string;
+    code?: string;
+    errors?: ApiValidationError[];
 };
