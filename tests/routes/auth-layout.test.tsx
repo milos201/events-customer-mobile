@@ -34,6 +34,7 @@ describe("AuthLayout", () => {
             user: null,
             session: null,
             signIn: jest.fn(),
+            createAccount: jest.fn(),
             signOut: jest.fn(),
         });
 
@@ -48,6 +49,7 @@ describe("AuthLayout", () => {
             user: null,
             session: null,
             signIn: jest.fn(),
+            createAccount: jest.fn(),
             signOut: jest.fn(),
         });
         useLocalSearchParams.mockReturnValue({ returnTo: "/booking/shop-1" });
@@ -63,6 +65,7 @@ describe("AuthLayout", () => {
             user: null,
             session: null,
             signIn: jest.fn(),
+            createAccount: jest.fn(),
             signOut: jest.fn(),
         });
 

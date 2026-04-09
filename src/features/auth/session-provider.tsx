@@ -12,6 +12,7 @@ type AuthSessionContextValue = {
     user: AuthUser | null;
     session: AuthSession | null;
     signIn: (input: { email: string; password: string }) => Promise<string | null>;
+    createAccount: (input: { name: string; email: string; password: string }) => Promise<string | null>;
     signOut: () => Promise<string | null>;
 };
 
@@ -36,6 +37,16 @@ export function AuthSessionProvider({ children }: PropsWithChildren) {
             session,
             signIn: async ({ email, password }) => {
                 const result = await authClient.signIn.email({
+                    email,
+                    password,
+                });
+
+                await sessionQuery.refetch();
+                return result.error?.message ?? null;
+            },
+            createAccount: async ({ name, email, password }) => {
+                const result = await authClient.signUp.email({
+                    name,
                     email,
                     password,
                 });

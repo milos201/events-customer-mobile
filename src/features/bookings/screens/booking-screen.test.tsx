@@ -44,6 +44,7 @@ describe("BookingScreen", () => {
             user: { id: "user-1", name: "Milos", email: "milos@example.com" } as never,
             session: null,
             signIn: jest.fn(),
+            createAccount: jest.fn(),
             signOut: jest.fn(),
         });
         mockedUsePublicCompanyBundle.mockReturnValue({

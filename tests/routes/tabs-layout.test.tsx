@@ -45,6 +45,7 @@ describe("TabsLayout", () => {
             user: null,
             session: null,
             signIn: jest.fn(),
+            createAccount: jest.fn(),
             signOut: jest.fn(),
         });
 

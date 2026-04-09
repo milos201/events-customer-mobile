@@ -8,9 +8,11 @@ import { ActionButton, ActionGroup, ActionLink, BackAction, ScreenShell, Section
 
 export function SignInScreen() {
     const router = useRouter();
-    const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
-    const { signIn } = useAuthSession();
+    const { returnTo, mode } = useLocalSearchParams<{ returnTo?: string; mode?: string }>();
+    const { signIn, createAccount } = useAuthSession();
     const safeReturnTo: Href = returnTo && returnTo.startsWith("/") ? (returnTo as Href) : ("/" as Href);
+    const isCreateAccount = mode === "create-account";
+    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,28 +23,61 @@ export function SignInScreen() {
             : "/";
 
     return (
-        <ScreenShell title="Sign in">
+        <ScreenShell
+            title={isCreateAccount ? "Create account" : "Sign in"}
+            description={isCreateAccount ? "Create an account and continue where you left off." : "Continue to your appointments and bookings."}
+        >
             <SectionCard title="Actions">
                 <ActionGroup>
-                    <BackAction label="Back to discovery" fallbackHref="/" />
-                    <BackAction label="Return to booking" fallbackHref={bookingFallbackHref} />
+                    <BackAction label="Not now" fallbackHref={bookingFallbackHref} />
+                    <ActionLink
+                        href={{
+                            pathname: "/sign-in",
+                            params: {
+                                returnTo: String(safeReturnTo),
+                                ...(isCreateAccount ? {} : { mode: "create-account" }),
+                            },
+                        } as unknown as Href}
+                        label={isCreateAccount ? "I already have an account" : "Create account"}
+                        variant="secondary"
+                    />
                     <ActionButton
-                        label={isSubmitting ? "Signing in…" : "Sign in"}
+                        label={
+                            isSubmitting
+                                ? isCreateAccount
+                                    ? "Creating account…"
+                                    : "Signing in…"
+                                : isCreateAccount
+                                  ? "Create account"
+                                  : "Sign in"
+                        }
                         onPress={async () => {
+                            const trimmedName = name.trim();
                             const trimmedEmail = email.trim();
 
+                            if (isCreateAccount && !trimmedName) {
+                                setErrorMessage("Name is required.");
+                                return;
+                            }
+
                             if (!trimmedEmail || !password) {
-                                setErrorMessage("Email and password are required.");
+                                setErrorMessage(isCreateAccount ? "Name, email, and password are required." : "Email and password are required.");
                                 return;
                             }
 
                             setIsSubmitting(true);
                             setErrorMessage(null);
 
-                            const error = await signIn({
-                                email: trimmedEmail,
-                                password,
-                            });
+                            const error = isCreateAccount
+                                ? await createAccount({
+                                      name: trimmedName,
+                                      email: trimmedEmail,
+                                      password,
+                                  })
+                                : await signIn({
+                                      email: trimmedEmail,
+                                      password,
+                                  });
 
                             setIsSubmitting(false);
 
@@ -57,8 +92,18 @@ export function SignInScreen() {
                 </ActionGroup>
             </SectionCard>
 
-            <SectionCard title="Email and password">
+            <SectionCard title={isCreateAccount ? "Profile and password" : "Email and password"}>
                 <View style={styles.fieldGroup}>
+                    {isCreateAccount ? (
+                        <TextInput
+                            autoCapitalize="words"
+                            autoComplete="name"
+                            onChangeText={setName}
+                            placeholder="Your name"
+                            style={styles.input}
+                            value={name}
+                        />
+                    ) : null}
                     <TextInput
                         autoCapitalize="none"
                         autoComplete="email"
@@ -82,7 +127,7 @@ export function SignInScreen() {
             </SectionCard>
 
             <SectionCard title="Continue">
-                <ActionLink href={safeReturnTo} label="Preview post-sign-in target" variant="secondary" />
+                <ActionLink href={safeReturnTo} label="Preview return target" variant="secondary" />
             </SectionCard>
         </ScreenShell>
     );
