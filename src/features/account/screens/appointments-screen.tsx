@@ -9,7 +9,7 @@ import { ThemedText } from "@/components/themed-text";
 import { useCancelOwnAppointment, useOwnAppointments } from "@/features/account/queries";
 import { AuthGate } from "@/features/auth/components/auth-gate";
 import { useAuthSession } from "@/features/auth/session-provider";
-import { ActionButton, ActionGroup, ActionLink, BackAction, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
+import { ActionButton, ActionGroup, ActionLink, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
 
 function formatDateRange(appointment: AppointmentRecord) {
     const startsAt = new Date(appointment.startsAt);
@@ -116,7 +116,6 @@ export function AppointmentsScreen() {
         () => new Set(appointments.filter(canCancelAppointment).map((appointment) => appointment.id)),
         [appointments],
     );
-    const recentCompany = appointments[0]?.company ?? null;
     const cancellationMessage =
         cancelAppointment.isSuccess && cancelAppointment.data
             ? `Appointment at ${cancelAppointment.data.company?.name ?? "the shop"} cancelled.`
@@ -134,24 +133,8 @@ export function AppointmentsScreen() {
         <ScreenShell
             title="Appointments"
             description="Review upcoming bookings, reopen the shop, or book the same service again."
+            showHero={false}
         >
-            <SectionCard title="Actions">
-                <ActionGroup>
-                    <BackAction label="Back to discovery" fallbackHref="/" />
-                    {recentCompany ? (
-                        <ActionLink
-                            href={{
-                                pathname: "/shops/[shopId]",
-                                params: { shopId: recentCompany.slug },
-                            }}
-                            label={`Open ${recentCompany.name}`}
-                            variant="secondary"
-                        />
-                    ) : null}
-                    <ActionLink href={"/account" as Href} label="Open account tab" />
-                </ActionGroup>
-            </SectionCard>
-
             <SectionCard title="Upcoming">
                 {appointmentsQuery.isPending ? <ThemedText>Loading appointments…</ThemedText> : null}
 

@@ -7,19 +7,22 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export default function TabsLayout() {
     const colorScheme = useColorScheme();
+    const resolvedScheme = colorScheme ?? "light";
 
     return (
         <Tabs
             screenOptions={{
-                headerShown: false,
                 tabBarButton: HapticTab,
-                tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+                tabBarActiveTintColor: Colors[resolvedScheme].tint,
+                headerTintColor: Colors[resolvedScheme].tint,
+                headerShadowVisible: false,
             }}
         >
             <Tabs.Screen
                 name="(discover)"
                 options={{
                     title: "Discover",
+                    headerShown: false,
                     tabBarIcon: ({ color }) => <IconSymbol size={28} name="magnifyingglass" color={color} />,
                 }}
             />

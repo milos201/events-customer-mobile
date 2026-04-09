@@ -8,7 +8,7 @@ import { ThemedText } from "@/components/themed-text";
 import { useAuthSession } from "@/features/auth/session-provider";
 import { useCreateAppointment, useBookingAvailability } from "@/features/bookings/queries";
 import { usePublicCompanyBundle } from "@/features/shops/queries";
-import { ActionButton, ActionGroup, ActionLink, BackAction, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
+import { ActionButton, ActionGroup, ActionLink, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
 
 function toLocalDateInputValue(date: Date) {
     const year = date.getFullYear();
@@ -157,20 +157,15 @@ export function BookingScreen() {
     }
 
     return (
-        <ScreenShell title="Book appointment">
-            <SectionCard title="Actions">
-                <ActionGroup>
-                    <BackAction label="Back to shop" fallbackHref={`/shops/${resolvedShopId}`} />
-                    {status !== "authenticated" ? (
-                        <ActionLink
-                            href={{ pathname: "/sign-in", params: { returnTo } } as unknown as Href}
-                            label="Sign in to confirm"
-                        />
-                    ) : (
-                        <ActionLink href={"/appointments" as Href} label="Open appointments" variant="secondary" />
-                    )}
-                </ActionGroup>
-            </SectionCard>
+        <ScreenShell title="Book appointment" showHero={false}>
+            {status !== "authenticated" ? (
+                <SectionCard title="Actions">
+                    <ActionLink
+                        href={{ pathname: "/sign-in", params: { returnTo } } as unknown as Href}
+                        label="Sign in to confirm"
+                    />
+                </SectionCard>
+            ) : null}
 
             <SectionCard title="Service">
                 {companyQuery.isPending ? <ThemedText>Loading services…</ThemedText> : null}

@@ -3,7 +3,7 @@ import type { Href } from "expo-router";
 import { usePathname } from "expo-router";
 import { useAuthSession } from "@/features/auth/session-provider";
 import { AuthGate } from "@/features/auth/components/auth-gate";
-import { ActionButton, ActionGroup, ActionLink, BackAction, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
+import { ActionButton, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
 
 export function AccountScreen() {
     const pathname = usePathname();
@@ -18,14 +18,7 @@ export function AccountScreen() {
     }
 
     return (
-        <ScreenShell title="Account">
-            <SectionCard title="Actions">
-                <ActionGroup>
-                    <ActionLink href={"/appointments" as Href} label="Open appointments tab" />
-                    <BackAction label="Back to discovery" fallbackHref="/" />
-                </ActionGroup>
-            </SectionCard>
-
+        <ScreenShell title="Account" showHero={false}>
             <SectionCard title="Session">
                 <BulletList items={[user?.name ?? "Unknown customer", user?.email ?? "No email available"]} />
                 <ActionButton

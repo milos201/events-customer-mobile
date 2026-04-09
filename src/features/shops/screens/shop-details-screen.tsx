@@ -1,9 +1,8 @@
-import type { Href } from "expo-router";
 import { useLocalSearchParams } from "expo-router";
 
 import { ThemedText } from "@/components/themed-text";
 import { usePublicCompanyBundle } from "@/features/shops/queries";
-import { ActionGroup, ActionLink, BackAction, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
+import { ActionLink, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
 
 export function ShopDetailsScreen() {
     const { shopId } = useLocalSearchParams<{ shopId: string }>();
@@ -16,15 +15,7 @@ export function ShopDetailsScreen() {
         .filter((value, index, array) => array.indexOf(value) === index);
 
     return (
-        <ScreenShell title={company?.name ?? "Shop"}>
-            <SectionCard title="Actions">
-                <ActionGroup>
-                    <BackAction label="Back to discovery" fallbackHref="/" />
-                    <ActionLink href={`/booking/${resolvedShopId}`} label="Go to booking" />
-                    <ActionLink href={"/appointments" as Href} label="Open appointments" variant="secondary" />
-                </ActionGroup>
-            </SectionCard>
-
+        <ScreenShell title={company?.name ?? "Shop"} showHero={false}>
             <SectionCard title="Details">
                 {companyQuery.isPending ? <ThemedText>Loading shop profile and services…</ThemedText> : null}
 
@@ -55,7 +46,7 @@ export function ShopDetailsScreen() {
 
             <SectionCard title="Services">
                 {services.length ? (
-                    <ActionGroup>
+                    <>
                         {services.map((service) => (
                             <ActionLink
                                 key={service.id}
@@ -72,7 +63,7 @@ export function ShopDetailsScreen() {
                                 }
                             />
                         ))}
-                    </ActionGroup>
+                    </>
                 ) : (
                     <ThemedText>No services available.</ThemedText>
                 )}

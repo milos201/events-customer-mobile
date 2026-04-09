@@ -12,6 +12,7 @@ type ScreenShellProps = PropsWithChildren<{
     eyebrow?: string;
     title: string;
     description?: string;
+    showHero?: boolean;
 }>;
 
 type SectionCardProps = PropsWithChildren<{
@@ -44,19 +45,22 @@ type ActionButtonProps = {
     trailing?: ReactNode;
 };
 
-export function ScreenShell({ eyebrow, title, description, children }: ScreenShellProps) {
+export function ScreenShell({ eyebrow, title, description, children, showHero = true }: ScreenShellProps) {
     const insets = useSafeAreaInsets();
+    const contentPaddingTop = showHero ? insets.top + 8 : 8;
 
     return (
         <ThemedView style={styles.screen}>
-            <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 24 }]}>
-                <View style={styles.hero}>
-                    {eyebrow ? <ThemedText style={styles.eyebrow}>{eyebrow}</ThemedText> : null}
-                    <ThemedText type="title" style={styles.title}>
-                        {title}
-                    </ThemedText>
-                    {description ? <ThemedText style={styles.description}>{description}</ThemedText> : null}
-                </View>
+            <ScrollView contentContainerStyle={[styles.content, { paddingTop: contentPaddingTop, paddingBottom: insets.bottom + 24 }]}>
+                {showHero ? (
+                    <View style={styles.hero}>
+                        {eyebrow ? <ThemedText style={styles.eyebrow}>{eyebrow}</ThemedText> : null}
+                        <ThemedText type="title" style={styles.title}>
+                            {title}
+                        </ThemedText>
+                        {description ? <ThemedText style={styles.description}>{description}</ThemedText> : null}
+                    </View>
+                ) : null}
                 <View style={styles.stack}>{children}</View>
             </ScrollView>
         </ThemedView>

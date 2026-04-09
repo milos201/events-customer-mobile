@@ -157,7 +157,7 @@ export function DiscoveryScreen() {
     }, [initialRegion]);
 
     return (
-        <ScreenShell title="Discover">
+        <ScreenShell title="Discover" showHero={false}>
             <View style={styles.stack}>
                 <TextInput
                     value={query}
