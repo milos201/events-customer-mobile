@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
-import { StyleSheet, TextInput, View } from "react-native";
+import { Platform, StyleSheet, TextInput, View } from "react-native";
 
-import { ApiError } from "@/api/http";
-import type { Service } from "@/api/types";
+import { ApiError, ApiUnauthorizedError } from "@/api/http";
 import { ThemedText } from "@/components/themed-text";
 import { useAuthSession } from "@/features/auth/session-provider";
 import { useCreateAppointment, useBookingAvailability } from "@/features/bookings/queries";
@@ -14,7 +14,32 @@ function toLocalDateInputValue(date: Date) {
     return date.toISOString().slice(0, 10);
 }
 
+function fromLocalDateInputValue(value: string) {
+    const [year, month, day] = value.split("-").map(Number);
+
+    return new Date(year, (month ?? 1) - 1, day ?? 1);
+}
+
 function getApiErrorMessage(error: unknown) {
+    if (error instanceof ApiUnauthorizedError) {
+        return error.message;
+    }
+
+    if (error instanceof ApiError && error.status === 409) {
+        return "That time is no longer available. Pick another slot.";
+    }
+
+    if (error instanceof ApiError && error.status === 400) {
+        if (error.body && typeof error.body === "object" && "message" in error.body) {
+            const message = (error.body as { message?: unknown }).message;
+            if (typeof message === "string" && message.length > 0) {
+                return message;
+            }
+        }
+
+        return "Please review your booking details and try again.";
+    }
+
     if (error instanceof ApiError && error.body && typeof error.body === "object" && "message" in error.body) {
         const message = (error.body as { message?: unknown }).message;
         if (typeof message === "string" && message.length > 0) {
@@ -34,6 +59,12 @@ function formatStartTimeLabel(value: string) {
         dateStyle: "medium",
         timeStyle: "short",
     }).format(new Date(value));
+}
+
+function formatSelectedDateLabel(value: string) {
+    return new Intl.DateTimeFormat("en-US", {
+        dateStyle: "full",
+    }).format(fromLocalDateInputValue(value));
 }
 
 export function BookingScreen() {
@@ -62,6 +93,8 @@ export function BookingScreen() {
     const [selectedDate, setSelectedDate] = useState(toLocalDateInputValue(new Date()));
     const [selectedStartTime, setSelectedStartTime] = useState<string | null>(null);
     const [notesCustomer, setNotesCustomer] = useState("");
+    const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const resolvedServiceId = selectedServiceId ?? initialService;
     const selectedService = services.find((service) => service.id === resolvedServiceId) ?? null;
@@ -90,13 +123,38 @@ export function BookingScreen() {
 
     const returnTo = resolvedServiceId ? `${pathname}?serviceId=${resolvedServiceId}` : pathname;
 
+    useEffect(() => {
+        if (!createAppointment.isSuccess || !createAppointment.data) {
+            return;
+        }
+
+        setSuccessMessage(
+            `Appointment requested at ${createAppointment.data.company?.name ?? "the shop"}. Redirecting to appointments…`,
+        );
+
+        const timeoutId = setTimeout(() => {
+            router.replace("/appointments");
+        }, 900);
+
+        return () => clearTimeout(timeoutId);
+    }, [createAppointment.data, createAppointment.isSuccess, router]);
+
+    function handleDateChange(event: DateTimePickerEvent, nextDate?: Date) {
+        if (Platform.OS !== "ios") {
+            setIsDatePickerVisible(false);
+        }
+
+        if (event.type !== "set" || !nextDate) {
+            return;
+        }
+
+        setSelectedDate(toLocalDateInputValue(nextDate));
+        setSelectedStartTime(null);
+    }
+
     return (
-        <ScreenShell
-            eyebrow="Booking"
-            title="Request an appointment"
-            description={`Choose a service, employee mode, date, and start time for ${resolvedShopId}, then submit the appointment request.`}
-        >
-            <SectionCard title="Quick navigation">
+        <ScreenShell title="Book appointment">
+            <SectionCard title="Actions">
                 <ActionGroup>
                     <BackAction label="Back to shop" fallbackHref={`/shops/${resolvedShopId}`} />
                     {status !== "authenticated" ? (
@@ -177,16 +235,29 @@ export function BookingScreen() {
 
             <SectionCard title="Date and notes">
                 <View style={styles.fieldGroup}>
-                    <TextInput
-                        autoCapitalize="none"
-                        onChangeText={(value) => {
-                            setSelectedDate(value);
-                            setSelectedStartTime(null);
-                        }}
-                        placeholder="YYYY-MM-DD"
-                        style={styles.input}
-                        value={selectedDate}
+                    <ActionButton
+                        label={formatSelectedDateLabel(selectedDate)}
+                        variant="secondary"
+                        onPress={() => setIsDatePickerVisible((current) => !current)}
                     />
+                    {isDatePickerVisible ? (
+                        <View style={styles.datePickerWrap}>
+                            <DateTimePicker
+                                display={Platform.OS === "ios" ? "inline" : "default"}
+                                minimumDate={new Date()}
+                                mode="date"
+                                onChange={handleDateChange}
+                                value={fromLocalDateInputValue(selectedDate)}
+                            />
+                            {Platform.OS === "ios" ? (
+                                <ActionButton
+                                    label="Done picking date"
+                                    variant="secondary"
+                                    onPress={() => setIsDatePickerVisible(false)}
+                                />
+                            ) : null}
+                        </View>
+                    ) : null}
                     <TextInput
                         multiline
                         onChangeText={setNotesCustomer}
@@ -197,8 +268,7 @@ export function BookingScreen() {
                 </View>
                 <BulletList
                     items={[
-                        "Date must be in YYYY-MM-DD format.",
-                        "Availability refreshes when service, employee mode, date, or employee changes.",
+                        "Pick a date before choosing a time slot.",
                     ]}
                 />
             </SectionCard>
@@ -241,6 +311,7 @@ export function BookingScreen() {
                 ) : (
                     <ThemedText>Select a service before confirming.</ThemedText>
                 )}
+                {successMessage ? <ThemedText>{successMessage}</ThemedText> : null}
                 {createAppointment.isError ? <ThemedText>{getApiErrorMessage(createAppointment.error)}</ThemedText> : null}
                 {status !== "authenticated" ? (
                     <ActionLink
@@ -259,19 +330,17 @@ export function BookingScreen() {
                                 return;
                             }
 
-                            void createAppointment
-                                .mutateAsync({
-                                    companyId: company.id,
-                                    serviceId: selectedService.id,
-                                    startsAt: selectedStartTime,
-                                    ...(employeeMode === "any"
-                                        ? { assignAnyEmployee: true as const }
-                                        : { employeeId: selectedEmployeeId as string }),
-                                    ...(notesCustomer.trim() ? { notesCustomer: notesCustomer.trim() } : {}),
-                                })
-                                .then(() => {
-                                    router.replace("/appointments");
-                                });
+                            setSuccessMessage(null);
+                            createAppointment.reset();
+                            void createAppointment.mutateAsync({
+                                companyId: company.id,
+                                serviceId: selectedService.id,
+                                startsAt: selectedStartTime,
+                                ...(employeeMode === "any"
+                                    ? { assignAnyEmployee: true as const }
+                                    : { employeeId: selectedEmployeeId as string }),
+                                ...(notesCustomer.trim() ? { notesCustomer: notesCustomer.trim() } : {}),
+                            });
                         }}
                         variant="primary"
                     />
@@ -297,6 +366,13 @@ const styles = StyleSheet.create({
     notesInput: {
         minHeight: 96,
         textAlignVertical: "top",
+    },
+    datePickerWrap: {
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: "rgba(10, 126, 164, 0.2)",
+        padding: 8,
+        gap: 8,
     },
     primaryTrailing: {
         color: "#FFFFFF",

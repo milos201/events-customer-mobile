@@ -28,6 +28,13 @@ export class ApiError extends Error {
     }
 }
 
+export class ApiUnauthorizedError extends ApiError {
+    constructor(message: string, body: unknown, url: string) {
+        super(message, 401, body, url);
+        this.name = "ApiUnauthorizedError";
+    }
+}
+
 export class ApiNetworkError extends Error {
     url: string;
     cause: unknown;
@@ -38,6 +45,16 @@ export class ApiNetworkError extends Error {
         this.url = url;
         this.cause = cause;
     }
+}
+
+const unauthorizedListeners = new Set<() => void>();
+
+export function subscribeToUnauthorized(listener: () => void) {
+    unauthorizedListeners.add(listener);
+
+    return () => {
+        unauthorizedListeners.delete(listener);
+    };
 }
 
 function buildUrl(path: string, query?: Record<string, QueryValue>) {
@@ -127,6 +144,14 @@ async function request<T>(method: ApiMethod, path: string, options: ApiRequestOp
         const body = await parseResponseBody(response);
 
         if (!response.ok) {
+            if (response.status === 401) {
+                for (const listener of unauthorizedListeners) {
+                    listener();
+                }
+
+                throw new ApiUnauthorizedError("Your session has expired. Please sign in again.", body, url);
+            }
+
             throw new ApiError(`Request failed with status ${response.status}`, response.status, body, url);
         }
 

@@ -15,12 +15,8 @@ export function ShopDetailsScreen() {
         .filter((value, index, array) => array.indexOf(value) === index);
 
     return (
-        <ScreenShell
-            eyebrow="Shop Details"
-            title={company?.name ?? `Shop: ${resolvedShopId}`}
-            description="This route represents the public shop page: basic profile, services, employees, and the first jump into booking."
-        >
-            <SectionCard title="Quick navigation">
+        <ScreenShell title={company?.name ?? "Shop"}>
+            <SectionCard title="Actions">
                 <ActionGroup>
                     <BackAction label="Back to discovery" fallbackHref="/" />
                     <ActionLink href={`/booking/${resolvedShopId}`} label="Go to booking" />
@@ -28,14 +24,11 @@ export function ShopDetailsScreen() {
                 </ActionGroup>
             </SectionCard>
 
-            <SectionCard title="Live shop data">
+            <SectionCard title="Details">
                 {companyQuery.isPending ? <ThemedText>Loading shop profile and services…</ThemedText> : null}
 
                 {companyQuery.isError ? (
-                    <ThemedText>
-                        Could not load the public shop bundle for `{resolvedShopId}`. Confirm the slug exists and that
-                        the backend is reachable from the app.
-                    </ThemedText>
+                    <ThemedText>Could not load shop details.</ThemedText>
                 ) : null}
 
                 {company ? (
@@ -55,7 +48,7 @@ export function ShopDetailsScreen() {
                 {employeeNames?.length ? (
                     <BulletList items={["Any employee", ...employeeNames]} />
                 ) : (
-                    <ThemedText>No public employee list is available for this shop yet.</ThemedText>
+                    <ThemedText>No staff available.</ThemedText>
                 )}
             </SectionCard>
 
@@ -80,24 +73,8 @@ export function ShopDetailsScreen() {
                         ))}
                     </ActionGroup>
                 ) : (
-                    <ThemedText>No active public services are available yet.</ThemedText>
+                    <ThemedText>No services available.</ThemedText>
                 )}
-            </SectionCard>
-
-            <SectionCard title="Booking handoff">
-                <ThemedText>
-                    Users should be able to choose a date, employee, and service from here before moving into slot
-                    selection and booking confirmation.
-                </ThemedText>
-                <ActionLink href={`/booking/${resolvedShopId}`} label="Start booking flow" />
-            </SectionCard>
-
-            <SectionCard title="Account boundary">
-                <ThemedText>
-                    Public users can reach this screen without authentication. Only the final booking submission should
-                    require sign-in.
-                </ThemedText>
-                <ActionLink href="/sign-in" label="Open sign-in screen" variant="secondary" />
             </SectionCard>
         </ScreenShell>
     );

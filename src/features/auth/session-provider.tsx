@@ -1,5 +1,6 @@
-import { createContext, useContext, useMemo, type PropsWithChildren } from "react";
+import { createContext, useContext, useEffect, useMemo, type PropsWithChildren } from "react";
 
+import { subscribeToUnauthorized } from "@/api/http";
 import { authClient } from "@/lib/auth-client";
 
 type AuthStatus = "loading" | "anonymous" | "authenticated";
@@ -21,6 +22,12 @@ export function AuthSessionProvider({ children }: PropsWithChildren) {
     const session = sessionQuery.data ?? null;
     const user = session?.user ?? null;
     const status: AuthStatus = sessionQuery.isPending ? "loading" : session ? "authenticated" : "anonymous";
+
+    useEffect(() => {
+        return subscribeToUnauthorized(() => {
+            void sessionQuery.refetch();
+        });
+    }, [sessionQuery]);
 
     const value = useMemo<AuthSessionContextValue>(
         () => ({

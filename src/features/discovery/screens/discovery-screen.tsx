@@ -1,33 +1,34 @@
 import { ThemedText } from "@/components/themed-text";
 import { usePublicCompanies } from "@/features/discovery/queries";
-import { apiBaseUrl } from "@/lib/config";
-import { ActionGroup, ActionLink, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
+import { ActionGroup, ActionLink, ScreenShell, SectionCard } from "@/ui/screen-shell";
 
 export function DiscoveryScreen() {
     const companiesQuery = usePublicCompanies();
+    const featuredCompany = companiesQuery.data?.results[0] ?? null;
 
     return (
-        <ScreenShell
-            eyebrow="Public Discovery"
-            title="Find a barber nearby"
-            description="This is the MVP entry point from the user stories: open the app, browse approved shops on a map, and jump into a shop page before signing in."
-        >
-            <SectionCard title="Navigate the skeleton">
+        <ScreenShell title="Discover">
+            <SectionCard title="Explore">
                 <ActionGroup>
-                    <ActionLink href="/shops/barber-house" label="Browse sample shop" />
+                    {featuredCompany ? (
+                        <ActionLink
+                            href={{
+                                pathname: "/shops/[shopId]",
+                                params: { shopId: featuredCompany.slug },
+                            }}
+                            label={`Open ${featuredCompany.name}`}
+                        />
+                    ) : null}
                     <ActionLink href="/sign-in" label="Open sign-in flow" variant="secondary" />
                     <ActionLink href="/appointments" label="Open customer area" variant="secondary" />
                 </ActionGroup>
             </SectionCard>
 
-            <SectionCard title="Live public companies">
-                {companiesQuery.isPending ? <ThemedText>Loading approved shops from {apiBaseUrl}…</ThemedText> : null}
+            <SectionCard title="Shops">
+                {companiesQuery.isPending ? <ThemedText>Loading shops…</ThemedText> : null}
 
                 {companiesQuery.isError ? (
-                    <ThemedText>
-                        Could not load companies. Confirm `EXPO_PUBLIC_API_URL` points at the running backend and that
-                        the API allows requests from the Expo client.
-                    </ThemedText>
+                    <ThemedText>Could not load shops.</ThemedText>
                 ) : null}
 
                 {companiesQuery.data?.results.length ? (
@@ -54,25 +55,8 @@ export function DiscoveryScreen() {
                 ) : null}
 
                 {companiesQuery.data && companiesQuery.data.results.length === 0 ? (
-                    <ThemedText>No approved companies are visible yet.</ThemedText>
+                    <ThemedText>No shops available.</ThemedText>
                 ) : null}
-            </SectionCard>
-
-            <SectionCard title="What belongs here next">
-                <BulletList
-                    items={[
-                        "Map view and marker clustering.",
-                        "Search, filters, and a nearby results list.",
-                        "Loading, empty, and location-denied states.",
-                    ]}
-                />
-            </SectionCard>
-
-            <SectionCard title="Product note">
-                <ThemedText>
-                    Build this screen directly from the discovery stories in `../events-api/USER_STORIES.md` before
-                    wiring richer UI polish.
-                </ThemedText>
             </SectionCard>
         </ScreenShell>
     );

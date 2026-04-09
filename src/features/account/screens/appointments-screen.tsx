@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 
+import { ApiError, ApiUnauthorizedError } from "@/api/http";
 import type { AppointmentRecord } from "@/api/types";
 import { ThemedText } from "@/components/themed-text";
 import { useCancelOwnAppointment, useOwnAppointments } from "@/features/account/queries";
@@ -25,6 +26,29 @@ function canCancelAppointment(appointment: AppointmentRecord) {
     return (appointment.status === "pending" || appointment.status === "confirmed") && startsAt.getTime() > Date.now();
 }
 
+function getUserFacingErrorMessage(error: unknown, fallback: string) {
+    if (error instanceof ApiUnauthorizedError) {
+        return error.message;
+    }
+
+    if (error instanceof ApiError && error.status === 409) {
+        return "This appointment can no longer be updated.";
+    }
+
+    if (error instanceof ApiError && error.body && typeof error.body === "object" && "message" in error.body) {
+        const message = (error.body as { message?: unknown }).message;
+        if (typeof message === "string" && message.length > 0) {
+            return message;
+        }
+    }
+
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    return fallback;
+}
+
 export function AppointmentsScreen() {
     const { user } = useAuthSession();
     const appointmentsQuery = useOwnAppointments();
@@ -34,29 +58,29 @@ export function AppointmentsScreen() {
         () => new Set(appointments.filter(canCancelAppointment).map((appointment) => appointment.id)),
         [appointments],
     );
+    const recentCompany = appointments[0]?.company ?? null;
+    const cancellationMessage =
+        cancelAppointment.isSuccess && cancelAppointment.data
+            ? `Appointment at ${cancelAppointment.data.company?.name ?? "the shop"} cancelled.`
+            : null;
 
     return (
-        <ScreenShell
-            eyebrow="Customer Area"
-            title="Appointments"
-            description="This tab will show the customer’s upcoming and past bookings, along with the current appointment status defined in the backend stories."
-        >
-            <SectionCard title="Quick navigation">
+        <ScreenShell title="Appointments">
+            <SectionCard title="Actions">
                 <ActionGroup>
                     <BackAction label="Back to discovery" fallbackHref="/" />
-                    <ActionLink href="/shops/barber-house" label="View sample shop" variant="secondary" />
+                    {recentCompany ? (
+                        <ActionLink
+                            href={{
+                                pathname: "/shops/[shopId]",
+                                params: { shopId: recentCompany.slug },
+                            }}
+                            label={`Open ${recentCompany.name}`}
+                            variant="secondary"
+                        />
+                    ) : null}
                     <ActionLink href="/account" label="Open account tab" />
                 </ActionGroup>
-            </SectionCard>
-
-            <SectionCard title="Core responsibilities">
-                <BulletList
-                    items={[
-                        "List pending, confirmed, rejected, cancelled, completed, and no-show appointments.",
-                        "Show enough detail for a customer to understand the booking outcome.",
-                        "Allow cancellation of eligible upcoming appointments.",
-                    ]}
-                />
             </SectionCard>
 
             <SectionCard title="Your appointments">
@@ -64,13 +88,21 @@ export function AppointmentsScreen() {
 
                 {appointmentsQuery.isError ? (
                     <ThemedText>
-                        Could not load appointments for {user?.email ?? "the current customer"}. Confirm the backend
-                        session is valid and `/v1/users/me/appointments` is reachable.
+                        {getUserFacingErrorMessage(
+                            appointmentsQuery.error,
+                            `Could not load appointments for ${user?.email ?? "the current customer"}.`,
+                        )}
                     </ThemedText>
                 ) : null}
 
                 {appointmentsQuery.data && appointments.length === 0 ? (
-                    <ThemedText>No appointments yet. The first booking you create should appear here.</ThemedText>
+                    <ThemedText>No appointments yet.</ThemedText>
+                ) : null}
+
+                {cancellationMessage ? <ThemedText>{cancellationMessage}</ThemedText> : null}
+
+                {cancelAppointment.isError ? (
+                    <ThemedText>{getUserFacingErrorMessage(cancelAppointment.error, "Could not cancel appointment.")}</ThemedText>
                 ) : null}
 
                 {appointments.length ? (
@@ -100,6 +132,7 @@ export function AppointmentsScreen() {
                                         }
                                         variant="secondary"
                                         onPress={() => {
+                                            cancelAppointment.reset();
                                             void cancelAppointment.mutateAsync(appointment.id);
                                         }}
                                     />
@@ -108,14 +141,6 @@ export function AppointmentsScreen() {
                         ))}
                     </ActionGroup>
                 ) : null}
-            </SectionCard>
-
-            <SectionCard title="Flow coverage">
-                <ThemedText>
-                    This screen closes the MVP loop after discovery, shop details, booking, and sign-in.
-                </ThemedText>
-                <ThemedText>Signed in as {user?.name ?? "customer"}.</ThemedText>
-                <ActionLink href="/" label="Back to discovery" variant="secondary" />
             </SectionCard>
         </ScreenShell>
     );

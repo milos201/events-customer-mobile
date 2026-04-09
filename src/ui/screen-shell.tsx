@@ -1,15 +1,17 @@
 import { type Href, Link, useRouter } from "expo-router";
 import type { PropsWithChildren, ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { useThemeColor } from "@/hooks/use-theme-color";
 import { Fonts } from "@/constants/theme";
 
 type ScreenShellProps = PropsWithChildren<{
-    eyebrow: string;
+    eyebrow?: string;
     title: string;
-    description: string;
+    description?: string;
 }>;
 
 type SectionCardProps = PropsWithChildren<{
@@ -43,15 +45,17 @@ type ActionButtonProps = {
 };
 
 export function ScreenShell({ eyebrow, title, description, children }: ScreenShellProps) {
+    const insets = useSafeAreaInsets();
+
     return (
         <ThemedView style={styles.screen}>
-            <ScrollView contentContainerStyle={styles.content}>
+            <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 24 }]}>
                 <View style={styles.hero}>
-                    <ThemedText style={styles.eyebrow}>{eyebrow}</ThemedText>
+                    {eyebrow ? <ThemedText style={styles.eyebrow}>{eyebrow}</ThemedText> : null}
                     <ThemedText type="title" style={styles.title}>
                         {title}
                     </ThemedText>
-                    <ThemedText style={styles.description}>{description}</ThemedText>
+                    {description ? <ThemedText style={styles.description}>{description}</ThemedText> : null}
                 </View>
                 <View style={styles.stack}>{children}</View>
             </ScrollView>
@@ -61,7 +65,7 @@ export function ScreenShell({ eyebrow, title, description, children }: ScreenShe
 
 export function SectionCard({ title, children }: SectionCardProps) {
     return (
-        <ThemedView style={styles.card} lightColor="#F7F8FA" darkColor="#1C1F24">
+        <ThemedView style={styles.card} lightColor="#FFFFFF" darkColor="#151718">
             <ThemedText type="subtitle" style={styles.cardTitle}>
                 {title}
             </ThemedText>
@@ -84,10 +88,17 @@ export function BulletList({ items }: ListProps) {
 }
 
 export function ActionLink({ href, label, variant = "primary", trailing }: ActionLinkProps) {
+    const secondaryTextColor = useThemeColor({}, "text");
+
     return (
         <Link href={href} asChild>
             <Pressable style={[styles.action, variant === "secondary" ? styles.actionSecondary : styles.actionPrimary]}>
-                <ThemedText style={[styles.actionText, variant === "secondary" ? styles.actionTextSecondary : null]}>
+                <ThemedText
+                    style={[
+                        styles.actionText,
+                        variant === "secondary" ? { color: secondaryTextColor } : null,
+                    ]}
+                >
                     {label}
                 </ThemedText>
                 {trailing}
@@ -101,12 +112,19 @@ export function ActionGroup({ children }: ActionGroupProps) {
 }
 
 export function ActionButton({ label, onPress, variant = "primary", trailing }: ActionButtonProps) {
+    const secondaryTextColor = useThemeColor({}, "text");
+
     return (
         <Pressable
             style={[styles.action, variant === "secondary" ? styles.actionSecondary : styles.actionPrimary]}
             onPress={onPress}
         >
-            <ThemedText style={[styles.actionText, variant === "secondary" ? styles.actionTextSecondary : null]}>
+            <ThemedText
+                style={[
+                    styles.actionText,
+                    variant === "secondary" ? { color: secondaryTextColor } : null,
+                ]}
+            >
                 {label}
             </ThemedText>
             {trailing}
@@ -116,6 +134,7 @@ export function ActionButton({ label, onPress, variant = "primary", trailing }: 
 
 export function BackAction({ label, fallbackHref, variant = "secondary" }: BackActionProps) {
     const router = useRouter();
+    const secondaryTextColor = useThemeColor({}, "text");
 
     return (
         <Pressable
@@ -129,7 +148,12 @@ export function BackAction({ label, fallbackHref, variant = "secondary" }: BackA
                 router.replace(fallbackHref);
             }}
         >
-            <ThemedText style={[styles.actionText, variant === "secondary" ? styles.actionTextSecondary : null]}>
+            <ThemedText
+                style={[
+                    styles.actionText,
+                    variant === "secondary" ? { color: secondaryTextColor } : null,
+                ]}
+            >
                 {label}
             </ThemedText>
         </Pressable>
@@ -141,64 +165,63 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     content: {
-        padding: 24,
-        paddingTop: 72,
-        paddingBottom: 120,
-        gap: 20,
+        paddingHorizontal: 16,
+        gap: 14,
     },
     hero: {
-        gap: 10,
+        gap: 2,
     },
     eyebrow: {
-        fontFamily: Fonts.mono,
-        fontSize: 13,
-        letterSpacing: 1.2,
-        textTransform: "uppercase",
-        opacity: 0.7,
+        fontSize: 12,
+        opacity: 0.55,
     },
     title: {
-        lineHeight: 38,
+        lineHeight: 34,
     },
     description: {
-        fontSize: 17,
-        lineHeight: 26,
-        opacity: 0.8,
+        fontSize: 14,
+        lineHeight: 20,
+        opacity: 0.72,
     },
     stack: {
-        gap: 16,
+        gap: 12,
     },
     stackSm: {
-        gap: 12,
-    },
-    stackXs: {
         gap: 10,
     },
+    stackXs: {
+        gap: 8,
+    },
     card: {
-        borderRadius: 24,
-        padding: 18,
-        gap: 12,
+        borderRadius: 14,
+        padding: 14,
+        gap: 10,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: "rgba(60, 60, 67, 0.18)",
     },
     cardTitle: {
-        fontFamily: Fonts.rounded,
+        fontFamily: Fonts.sans,
+        fontSize: 17,
+        fontWeight: "600",
     },
     bulletRow: {
         flexDirection: "row",
-        gap: 10,
+        gap: 8,
         alignItems: "flex-start",
     },
     bullet: {
-        width: 8,
-        height: 8,
+        width: 6,
+        height: 6,
         borderRadius: 999,
-        backgroundColor: "#0A7EA4",
+        backgroundColor: "#8E8E93",
         marginTop: 8,
     },
     bulletText: {
         flex: 1,
     },
     action: {
-        minHeight: 54,
-        borderRadius: 18,
+        minHeight: 50,
+        borderRadius: 12,
         paddingHorizontal: 16,
         paddingVertical: 12,
         alignItems: "center",
@@ -206,21 +229,18 @@ const styles = StyleSheet.create({
         flexDirection: "row",
     },
     actionGroup: {
-        gap: 10,
+        gap: 8,
     },
     actionPrimary: {
-        backgroundColor: "#0A7EA4",
+        backgroundColor: "#0A84FF",
     },
     actionSecondary: {
         borderWidth: 1,
-        borderColor: "rgba(10, 126, 164, 0.35)",
+        borderColor: "rgba(60, 60, 67, 0.2)",
     },
     actionText: {
         color: "#FFFFFF",
         fontSize: 16,
-        fontWeight: "600",
-    },
-    actionTextSecondary: {
-        color: "#0A7EA4",
+        fontWeight: "500",
     },
 });
