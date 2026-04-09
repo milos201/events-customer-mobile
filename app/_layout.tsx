@@ -4,21 +4,26 @@ import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { AppProviders } from "@/src/providers/app-providers";
 
 export const unstable_settings = {
-    anchor: "(tabs)",
+    anchor: "(public)",
 };
 
 export default function RootLayout() {
     const colorScheme = useColorScheme();
 
     return (
-        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-            <Stack>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="modal" options={{ presentation: "modal", title: "Modal" }} />
-            </Stack>
-            <StatusBar style="auto" />
-        </ThemeProvider>
+        <AppProviders>
+            <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+                <Stack>
+                    <Stack.Screen name="(public)" options={{ headerShown: false }} />
+                    <Stack.Screen name="booking/[shopId]" options={{ headerShown: false }} />
+                    <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                    <Stack.Screen name="(customer)" options={{ headerShown: false }} />
+                </Stack>
+                <StatusBar style="auto" />
+            </ThemeProvider>
+        </AppProviders>
     );
 }
