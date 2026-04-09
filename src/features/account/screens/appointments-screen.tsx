@@ -1,10 +1,12 @@
 import type { Href } from "expo-router";
+import { usePathname } from "expo-router";
 import { useMemo } from "react";
 
 import { ApiError, ApiUnauthorizedError } from "@/api/http";
 import type { AppointmentRecord } from "@/api/types";
 import { ThemedText } from "@/components/themed-text";
 import { useCancelOwnAppointment, useOwnAppointments } from "@/features/account/queries";
+import { AuthGate } from "@/features/auth/components/auth-gate";
 import { useAuthSession } from "@/features/auth/session-provider";
 import { ActionButton, ActionGroup, ActionLink, BackAction, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
 
@@ -51,8 +53,9 @@ function getUserFacingErrorMessage(error: unknown, fallback: string) {
 }
 
 export function AppointmentsScreen() {
-    const { user } = useAuthSession();
-    const appointmentsQuery = useOwnAppointments();
+    const pathname = usePathname();
+    const { status, user } = useAuthSession();
+    const appointmentsQuery = useOwnAppointments(status === "authenticated");
     const cancelAppointment = useCancelOwnAppointment();
     const appointments = appointmentsQuery.data?.results ?? [];
     const cancellableIds = useMemo(
@@ -64,6 +67,14 @@ export function AppointmentsScreen() {
         cancelAppointment.isSuccess && cancelAppointment.data
             ? `Appointment at ${cancelAppointment.data.company?.name ?? "the shop"} cancelled.`
             : null;
+
+    if (status === "loading") {
+        return null;
+    }
+
+    if (status !== "authenticated") {
+        return <AuthGate title="Appointments" returnTo={String(pathname) as Href} />;
+    }
 
     return (
         <ScreenShell title="Appointments">

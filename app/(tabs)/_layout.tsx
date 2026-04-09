@@ -1,4 +1,4 @@
-import { Redirect, Tabs, usePathname, type Href } from "expo-router";
+import { Tabs, useRouter, type Href } from "expo-router";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -6,17 +6,26 @@ import { Colors } from "@/constants/theme";
 import { useAuthSession } from "@/features/auth/session-provider";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
-export default function CustomerLayout() {
+export default function TabsLayout() {
     const colorScheme = useColorScheme();
-    const pathname = usePathname();
+    const router = useRouter();
     const { status } = useAuthSession();
 
-    if (status === "loading") {
-        return null;
-    }
+    function getProtectedTabButton(returnTo: Href) {
+        return function ProtectedTabButton(props: React.ComponentProps<typeof HapticTab>) {
+            if (status === "authenticated") {
+                return <HapticTab {...props} />;
+            }
 
-    if (status !== "authenticated") {
-        return <Redirect href={{ pathname: "/sign-in", params: { returnTo: String(pathname) } } as unknown as Href} />;
+            return (
+                <HapticTab
+                    {...props}
+                    onPress={() => {
+                        router.push({ pathname: "/sign-in", params: { returnTo: String(returnTo) } } as unknown as Href);
+                    }}
+                />
+            );
+        };
     }
 
     return (
@@ -28,10 +37,18 @@ export default function CustomerLayout() {
             }}
         >
             <Tabs.Screen
+                name="(discover)"
+                options={{
+                    title: "Discover",
+                    tabBarIcon: ({ color }) => <IconSymbol size={28} name="magnifyingglass" color={color} />,
+                }}
+            />
+            <Tabs.Screen
                 name="appointments"
                 options={{
                     title: "Appointments",
                     tabBarIcon: ({ color }) => <IconSymbol size={28} name="calendar" color={color} />,
+                    tabBarButton: getProtectedTabButton("/appointments" as Href),
                 }}
             />
             <Tabs.Screen
@@ -39,6 +56,7 @@ export default function CustomerLayout() {
                 options={{
                     title: "Account",
                     tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+                    tabBarButton: getProtectedTabButton("/account" as Href),
                 }}
             />
         </Tabs>

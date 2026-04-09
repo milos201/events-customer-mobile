@@ -10,7 +10,7 @@ export function SignInScreen() {
     const router = useRouter();
     const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
     const { signIn } = useAuthSession();
-    const safeReturnTo: Href = returnTo && returnTo.startsWith("/") ? (returnTo as Href) : ("/appointments" as Href);
+    const safeReturnTo: Href = returnTo && returnTo.startsWith("/") ? (returnTo as Href) : ("/" as Href);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);

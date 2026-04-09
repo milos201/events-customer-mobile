@@ -7,7 +7,7 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { AppProviders } from "@/providers/app-providers";
 
 export const unstable_settings = {
-    anchor: "(public)",
+    anchor: "(tabs)",
 };
 
 export default function RootLayout() {
@@ -17,9 +17,8 @@ export default function RootLayout() {
         <AppProviders>
             <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
                 <Stack>
-                    <Stack.Screen name="(public)" options={{ headerShown: false }} />
-                    <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                    <Stack.Screen name="(customer)" options={{ headerShown: false }} />
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                    <Stack.Screen name="(auth)" options={{ headerShown: false, presentation: "modal" }} />
                 </Stack>
                 <StatusBar style="auto" />
             </ThemeProvider>

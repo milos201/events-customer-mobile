@@ -2,10 +2,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { cancelOwnAppointment, listOwnAppointments } from "@/api/appointments";
 
-export function useOwnAppointments() {
+export function useOwnAppointments(enabled = true) {
     return useQuery({
         queryKey: ["own-appointments"],
         queryFn: ({ signal }) => listOwnAppointments({ limit: 20 }, signal),
+        enabled,
     });
 }
 

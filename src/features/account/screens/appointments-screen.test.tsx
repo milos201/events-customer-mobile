@@ -20,6 +20,7 @@ jest.mock("expo-router", () => {
     return {
         Link: ({ children }: { children: React.ReactNode }) => children,
         useRouter: () => ({ canGoBack: () => false, back: jest.fn(), replace: jest.fn() }),
+        usePathname: () => "/appointments",
     };
 });
 

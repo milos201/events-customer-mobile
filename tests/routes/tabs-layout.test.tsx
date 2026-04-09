@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react-native";
 
-import CustomerLayout from "@/../app/(customer)/_layout";
+import TabsLayout from "@/../app/(tabs)/_layout";
 import { useAuthSession } from "@/features/auth/session-provider";
 
 jest.mock("@/features/auth/session-provider", () => ({
@@ -27,20 +27,19 @@ jest.mock("expo-router", () => {
     Tabs.Screen = ({ name }: { name: string }) => <Text>{name}</Text>;
 
     return {
-        Redirect: ({ href }: { href: unknown }) => <Text>{JSON.stringify(href)}</Text>,
         Tabs,
-        usePathname: jest.fn(() => "/appointments"),
+        useRouter: () => ({ push: jest.fn() }),
     };
 });
 
 const mockedUseAuthSession = jest.mocked(useAuthSession);
 
-describe("CustomerLayout", () => {
+describe("TabsLayout", () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    it("redirects anonymous users to sign-in with returnTo", () => {
+    it("renders the global discover, appointments, and account tabs", () => {
         mockedUseAuthSession.mockReturnValue({
             status: "anonymous",
             user: null,
@@ -49,22 +48,9 @@ describe("CustomerLayout", () => {
             signOut: jest.fn(),
         });
 
-        render(<CustomerLayout />);
+        render(<TabsLayout />);
 
-        expect(screen.getByText('{"pathname":"/sign-in","params":{"returnTo":"/appointments"}}')).toBeTruthy();
-    });
-
-    it("renders the customer tabs for authenticated users", () => {
-        mockedUseAuthSession.mockReturnValue({
-            status: "authenticated",
-            user: null,
-            session: null,
-            signIn: jest.fn(),
-            signOut: jest.fn(),
-        });
-
-        render(<CustomerLayout />);
-
+        expect(screen.getByText("(discover)")).toBeTruthy();
         expect(screen.getByText("appointments")).toBeTruthy();
         expect(screen.getByText("account")).toBeTruthy();
     });

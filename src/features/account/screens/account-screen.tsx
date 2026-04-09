@@ -1,11 +1,21 @@
 import type { Href } from "expo-router";
 
-import { ThemedText } from "@/components/themed-text";
+import { usePathname } from "expo-router";
 import { useAuthSession } from "@/features/auth/session-provider";
+import { AuthGate } from "@/features/auth/components/auth-gate";
 import { ActionButton, ActionGroup, ActionLink, BackAction, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
 
 export function AccountScreen() {
-    const { signOut, user } = useAuthSession();
+    const pathname = usePathname();
+    const { signOut, status, user } = useAuthSession();
+
+    if (status === "loading") {
+        return null;
+    }
+
+    if (status !== "authenticated") {
+        return <AuthGate title="Account" returnTo={String(pathname) as Href} />;
+    }
 
     return (
         <ScreenShell title="Account">
