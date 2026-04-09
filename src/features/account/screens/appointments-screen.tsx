@@ -1,3 +1,4 @@
+import type { Href } from "expo-router";
 import { useMemo } from "react";
 
 import { ApiError, ApiUnauthorizedError } from "@/api/http";
@@ -79,7 +80,7 @@ export function AppointmentsScreen() {
                             variant="secondary"
                         />
                     ) : null}
-                    <ActionLink href="/account" label="Open account tab" />
+                    <ActionLink href={"/account" as Href} label="Open account tab" />
                 </ActionGroup>
             </SectionCard>
 

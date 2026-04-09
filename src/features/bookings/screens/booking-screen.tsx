@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { useLocalSearchParams, usePathname, useRouter } from "expo-router";
+import { useLocalSearchParams, usePathname, useRouter, type Href } from "expo-router";
 import { Platform, StyleSheet, TextInput, View } from "react-native";
 
 import { ApiError, ApiUnauthorizedError } from "@/api/http";
@@ -121,7 +121,7 @@ export function BookingScreen() {
 
     const availableTimes = availabilityQuery.data?.startTimes ?? [];
 
-    const returnTo = resolvedServiceId ? `${pathname}?serviceId=${resolvedServiceId}` : pathname;
+    const returnTo = resolvedServiceId ? `${String(pathname)}?serviceId=${resolvedServiceId}` : String(pathname);
 
     useEffect(() => {
         if (!createAppointment.isSuccess || !createAppointment.data) {
@@ -133,7 +133,7 @@ export function BookingScreen() {
         );
 
         const timeoutId = setTimeout(() => {
-            router.replace("/appointments");
+            router.replace("/appointments" as Href);
         }, 900);
 
         return () => clearTimeout(timeoutId);
@@ -159,11 +159,11 @@ export function BookingScreen() {
                     <BackAction label="Back to shop" fallbackHref={`/shops/${resolvedShopId}`} />
                     {status !== "authenticated" ? (
                         <ActionLink
-                            href={{ pathname: "/sign-in", params: { returnTo } }}
+                            href={{ pathname: "/sign-in", params: { returnTo } } as unknown as Href}
                             label="Sign in to confirm"
                         />
                     ) : (
-                        <ActionLink href="/appointments" label="Open appointments" variant="secondary" />
+                        <ActionLink href={"/appointments" as Href} label="Open appointments" variant="secondary" />
                     )}
                 </ActionGroup>
             </SectionCard>
@@ -315,7 +315,7 @@ export function BookingScreen() {
                 {createAppointment.isError ? <ThemedText>{getApiErrorMessage(createAppointment.error)}</ThemedText> : null}
                 {status !== "authenticated" ? (
                     <ActionLink
-                        href={{ pathname: "/sign-in", params: { returnTo } }}
+                        href={{ pathname: "/sign-in", params: { returnTo } } as unknown as Href}
                         label="Sign in before booking"
                     />
                 ) : (

@@ -10,12 +10,15 @@ export function SignInScreen() {
     const router = useRouter();
     const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
     const { signIn } = useAuthSession();
-    const safeReturnTo: Href = returnTo && returnTo.startsWith("/") ? (returnTo as Href) : "/appointments";
+    const safeReturnTo: Href = returnTo && returnTo.startsWith("/") ? (returnTo as Href) : ("/appointments" as Href);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const bookingFallbackHref: Href = safeReturnTo.toString().startsWith("/booking/") ? safeReturnTo : "/";
+    const bookingFallbackHref: Href =
+        safeReturnTo.toString().startsWith("/booking/") || safeReturnTo.toString().startsWith("/(public)/booking/")
+            ? safeReturnTo
+            : "/";
 
     return (
         <ScreenShell title="Sign in">

@@ -5,7 +5,7 @@ import { useAuthSession } from "@/features/auth/session-provider";
 export default function AuthLayout() {
     const { status } = useAuthSession();
     const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
-    const redirectHref: Href = returnTo && returnTo.startsWith("/") ? (returnTo as Href) : "/appointments";
+    const redirectHref: Href = returnTo && returnTo.startsWith("/") ? (returnTo as Href) : ("/appointments" as Href);
 
     if (status === "loading") {
         return null;

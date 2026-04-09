@@ -1,3 +1,4 @@
+import type { Href } from "expo-router";
 import { useLocalSearchParams } from "expo-router";
 
 import { ThemedText } from "@/components/themed-text";
@@ -20,7 +21,7 @@ export function ShopDetailsScreen() {
                 <ActionGroup>
                     <BackAction label="Back to discovery" fallbackHref="/" />
                     <ActionLink href={`/booking/${resolvedShopId}`} label="Go to booking" />
-                    <ActionLink href="/appointments" label="Open appointments" variant="secondary" />
+                    <ActionLink href={"/appointments" as Href} label="Open appointments" variant="secondary" />
                 </ActionGroup>
             </SectionCard>
 

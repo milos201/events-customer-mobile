@@ -1,4 +1,4 @@
-import { Redirect, Tabs, usePathname } from "expo-router";
+import { Redirect, Tabs, usePathname, type Href } from "expo-router";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -16,7 +16,7 @@ export default function CustomerLayout() {
     }
 
     if (status !== "authenticated") {
-        return <Redirect href={{ pathname: "/sign-in", params: { returnTo: pathname } }} />;
+        return <Redirect href={{ pathname: "/sign-in", params: { returnTo: String(pathname) } } as unknown as Href} />;
     }
 
     return (

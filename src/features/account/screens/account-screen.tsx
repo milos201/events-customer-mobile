@@ -1,3 +1,5 @@
+import type { Href } from "expo-router";
+
 import { ThemedText } from "@/components/themed-text";
 import { useAuthSession } from "@/features/auth/session-provider";
 import { ActionButton, ActionGroup, ActionLink, BackAction, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
@@ -9,7 +11,7 @@ export function AccountScreen() {
         <ScreenShell title="Account">
             <SectionCard title="Actions">
                 <ActionGroup>
-                    <ActionLink href="/appointments" label="Open appointments tab" />
+                    <ActionLink href={"/appointments" as Href} label="Open appointments tab" />
                     <BackAction label="Back to discovery" fallbackHref="/" />
                 </ActionGroup>
             </SectionCard>

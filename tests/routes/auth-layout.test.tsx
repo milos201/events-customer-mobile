@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react-native";
 
-import AuthLayout from "./_layout";
+import AuthLayout from "@/../app/(auth)/_layout";
 import { useAuthSession } from "@/features/auth/session-provider";
 
 jest.mock("@/features/auth/session-provider", () => ({
