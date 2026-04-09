@@ -1,6 +1,7 @@
 import type { Href } from "expo-router";
 import { usePathname } from "expo-router";
 import { useMemo } from "react";
+import { Alert, StyleSheet, View } from "react-native";
 
 import { ApiError, ApiUnauthorizedError } from "@/api/http";
 import type { AppointmentRecord } from "@/api/types";
@@ -27,6 +28,51 @@ function formatDateRange(appointment: AppointmentRecord) {
 function canCancelAppointment(appointment: AppointmentRecord) {
     const startsAt = new Date(appointment.startsAt);
     return (appointment.status === "pending" || appointment.status === "confirmed") && startsAt.getTime() > Date.now();
+}
+
+function isUpcomingAppointment(appointment: AppointmentRecord) {
+    return canCancelAppointment(appointment);
+}
+
+function getStatusTone(status: AppointmentRecord["status"]) {
+    switch (status) {
+        case "confirmed":
+            return {
+                backgroundColor: "rgba(34, 197, 94, 0.14)",
+                color: "#166534",
+            };
+        case "pending":
+            return {
+                backgroundColor: "rgba(245, 158, 11, 0.16)",
+                color: "#92400E",
+            };
+        case "completed":
+            return {
+                backgroundColor: "rgba(10, 126, 164, 0.14)",
+                color: "#0A7EA4",
+            };
+        case "cancelled":
+        case "rejected":
+        case "noShow":
+            return {
+                backgroundColor: "rgba(107, 114, 128, 0.18)",
+                color: "#4B5563",
+            };
+        default:
+            return {
+                backgroundColor: "rgba(107, 114, 128, 0.18)",
+                color: "#4B5563",
+            };
+    }
+}
+
+function formatStatusLabel(status: AppointmentRecord["status"]) {
+    switch (status) {
+        case "noShow":
+            return "No-show";
+        default:
+            return status.charAt(0).toUpperCase() + status.slice(1);
+    }
 }
 
 function getUserFacingErrorMessage(error: unknown, fallback: string) {
@@ -58,6 +104,14 @@ export function AppointmentsScreen() {
     const appointmentsQuery = useOwnAppointments(status === "authenticated");
     const cancelAppointment = useCancelOwnAppointment();
     const appointments = appointmentsQuery.data?.results ?? [];
+    const upcomingAppointments = useMemo(
+        () => appointments.filter(isUpcomingAppointment),
+        [appointments],
+    );
+    const historyAppointments = useMemo(
+        () => appointments.filter((appointment) => !isUpcomingAppointment(appointment)),
+        [appointments],
+    );
     const cancellableIds = useMemo(
         () => new Set(appointments.filter(canCancelAppointment).map((appointment) => appointment.id)),
         [appointments],
@@ -77,7 +131,10 @@ export function AppointmentsScreen() {
     }
 
     return (
-        <ScreenShell title="Appointments">
+        <ScreenShell
+            title="Appointments"
+            description="Review upcoming bookings, reopen the shop, or book the same service again."
+        >
             <SectionCard title="Actions">
                 <ActionGroup>
                     <BackAction label="Back to discovery" fallbackHref="/" />
@@ -95,7 +152,7 @@ export function AppointmentsScreen() {
                 </ActionGroup>
             </SectionCard>
 
-            <SectionCard title="Your appointments">
+            <SectionCard title="Upcoming">
                 {appointmentsQuery.isPending ? <ThemedText>Loading appointments…</ThemedText> : null}
 
                 {appointmentsQuery.isError ? (
@@ -117,16 +174,27 @@ export function AppointmentsScreen() {
                     <ThemedText>{getUserFacingErrorMessage(cancelAppointment.error, "Could not cancel appointment.")}</ThemedText>
                 ) : null}
 
-                {appointments.length ? (
+                {upcomingAppointments.length ? (
                     <ActionGroup>
-                        {appointments.map((appointment) => (
+                        {upcomingAppointments.map((appointment) => (
                             <SectionCard
                                 key={appointment.id}
                                 title={`${appointment.company?.name ?? "Company"} · ${appointment.serviceNameSnapshot}`}
                             >
+                                <View style={styles.metaRow}>
+                                    <View
+                                        style={[
+                                            styles.statusChip,
+                                            { backgroundColor: getStatusTone(appointment.status).backgroundColor },
+                                        ]}
+                                    >
+                                        <ThemedText style={[styles.statusChipText, { color: getStatusTone(appointment.status).color }]}>
+                                            {formatStatusLabel(appointment.status)}
+                                        </ThemedText>
+                                    </View>
+                                </View>
                                 <BulletList
                                     items={[
-                                        `Status: ${appointment.status}`,
                                         `When: ${formatDateRange(appointment)}`,
                                         `Employee: ${appointment.employee?.name ?? "Assigned by shop"}`,
                                         `Price: ${(appointment.servicePriceCentsSnapshot / 100).toFixed(2)}`,
@@ -135,25 +203,142 @@ export function AppointmentsScreen() {
                                 {appointment.notesCustomer ? (
                                     <ThemedText>Notes: {appointment.notesCustomer}</ThemedText>
                                 ) : null}
-                                {cancellableIds.has(appointment.id) ? (
-                                    <ActionButton
-                                        label={
-                                            cancelAppointment.isPending && cancelAppointment.variables === appointment.id
-                                                ? "Cancelling…"
-                                                : "Cancel appointment"
-                                        }
-                                        variant="secondary"
-                                        onPress={() => {
-                                            cancelAppointment.reset();
-                                            void cancelAppointment.mutateAsync(appointment.id);
-                                        }}
-                                    />
-                                ) : null}
+                                <ActionGroup>
+                                    {appointment.company ? (
+                                        <ActionLink
+                                            href={{
+                                                pathname: "/shops/[shopId]",
+                                                params: { shopId: appointment.company.slug },
+                                            }}
+                                            label="Open shop"
+                                            variant="secondary"
+                                        />
+                                    ) : null}
+                                    {appointment.company ? (
+                                        <ActionLink
+                                            href={{
+                                                pathname: "/booking/[shopId]",
+                                                params: {
+                                                    shopId: appointment.company.slug,
+                                                    serviceId: String(appointment.serviceId),
+                                                },
+                                            }}
+                                            label="Book again"
+                                        />
+                                    ) : null}
+                                    {cancellableIds.has(appointment.id) ? (
+                                        <ActionButton
+                                            label={
+                                                cancelAppointment.isPending && cancelAppointment.variables === appointment.id
+                                                    ? "Cancelling…"
+                                                    : "Cancel appointment"
+                                            }
+                                            variant="secondary"
+                                            onPress={() => {
+                                                Alert.alert(
+                                                    "Cancel appointment?",
+                                                    "This will release the slot if the shop still accepts changes.",
+                                                    [
+                                                        {
+                                                            text: "Keep appointment",
+                                                            style: "cancel",
+                                                        },
+                                                        {
+                                                            text: "Cancel appointment",
+                                                            style: "destructive",
+                                                            onPress: () => {
+                                                                cancelAppointment.reset();
+                                                                void cancelAppointment.mutateAsync(appointment.id);
+                                                            },
+                                                        },
+                                                    ],
+                                                );
+                                            }}
+                                        />
+                                    ) : null}
+                                </ActionGroup>
                             </SectionCard>
                         ))}
                     </ActionGroup>
+                ) : appointmentsQuery.data && appointments.length > 0 ? (
+                    <ThemedText>No upcoming appointments.</ThemedText>
+                ) : null}
+            </SectionCard>
+
+            <SectionCard title="History">
+                {historyAppointments.length ? (
+                    <ActionGroup>
+                        {historyAppointments.map((appointment) => (
+                            <SectionCard
+                                key={appointment.id}
+                                title={`${appointment.company?.name ?? "Company"} · ${appointment.serviceNameSnapshot}`}
+                            >
+                                <View style={styles.metaRow}>
+                                    <View
+                                        style={[
+                                            styles.statusChip,
+                                            { backgroundColor: getStatusTone(appointment.status).backgroundColor },
+                                        ]}
+                                    >
+                                        <ThemedText style={[styles.statusChipText, { color: getStatusTone(appointment.status).color }]}>
+                                            {formatStatusLabel(appointment.status)}
+                                        </ThemedText>
+                                    </View>
+                                </View>
+                                <BulletList
+                                    items={[
+                                        `When: ${formatDateRange(appointment)}`,
+                                        `Employee: ${appointment.employee?.name ?? "Assigned by shop"}`,
+                                        `Price: ${(appointment.servicePriceCentsSnapshot / 100).toFixed(2)}`,
+                                    ]}
+                                />
+                                <ActionGroup>
+                                    {appointment.company ? (
+                                        <ActionLink
+                                            href={{
+                                                pathname: "/shops/[shopId]",
+                                                params: { shopId: appointment.company.slug },
+                                            }}
+                                            label="Open shop"
+                                            variant="secondary"
+                                        />
+                                    ) : null}
+                                    {appointment.company ? (
+                                        <ActionLink
+                                            href={{
+                                                pathname: "/booking/[shopId]",
+                                                params: {
+                                                    shopId: appointment.company.slug,
+                                                    serviceId: String(appointment.serviceId),
+                                                },
+                                            }}
+                                            label="Book again"
+                                        />
+                                    ) : null}
+                                </ActionGroup>
+                            </SectionCard>
+                        ))}
+                    </ActionGroup>
+                ) : appointmentsQuery.data && appointments.length > 0 ? (
+                    <ThemedText>No past appointments yet.</ThemedText>
                 ) : null}
             </SectionCard>
         </ScreenShell>
     );
 }
+
+const styles = StyleSheet.create({
+    metaRow: {
+        flexDirection: "row",
+        justifyContent: "flex-start",
+    },
+    statusChip: {
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 999,
+    },
+    statusChipText: {
+        fontSize: 13,
+        fontWeight: "600",
+    },
+});

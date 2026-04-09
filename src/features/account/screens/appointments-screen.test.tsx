@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
+import { Alert } from "react-native";
 
 import { AppointmentsScreen } from "@/features/account/screens/appointments-screen";
 import { useCancelOwnAppointment, useOwnAppointments } from "@/features/account/queries";
@@ -27,10 +28,17 @@ jest.mock("expo-router", () => {
 const mockedUseAuthSession = jest.mocked(useAuthSession);
 const mockedUseOwnAppointments = jest.mocked(useOwnAppointments);
 const mockedUseCancelOwnAppointment = jest.mocked(useCancelOwnAppointment);
+const mockedAlert = jest.spyOn(Alert, "alert").mockImplementation(jest.fn());
 
 describe("AppointmentsScreen", () => {
-    it("renders appointment data and triggers cancellation", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("groups appointments and confirms cancellation before mutating", () => {
         const mutateAsync = jest.fn();
+        const reset = jest.fn();
+        const now = Date.now();
 
         mockedUseAuthSession.mockReturnValue({
             status: "authenticated",
@@ -49,9 +57,9 @@ describe("AppointmentsScreen", () => {
                         employeeId: "emp-1",
                         userId: "user-1",
                         serviceId: 7,
-                        startsAt: new Date(Date.now() + 86_400_000).toISOString(),
-                        endsAt: new Date(Date.now() + 86_400_000 + 1_800_000).toISOString(),
-                        status: "pending",
+                        startsAt: new Date(now + 86_400_000).toISOString(),
+                        endsAt: new Date(now + 86_400_000 + 1_800_000).toISOString(),
+                        status: "confirmed",
                         customerNameSnapshot: "Milos",
                         customerPhoneSnapshot: null,
                         customerEmailSnapshot: "milos@example.com",
@@ -59,6 +67,32 @@ describe("AppointmentsScreen", () => {
                         serviceDurationMinutesSnapshot: 30,
                         servicePriceCentsSnapshot: 2500,
                         notesCustomer: "Please be on time",
+                        notesInternal: null,
+                        bookedFrom: "public",
+                        cancelledAt: null,
+                        rejectedAt: null,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                        company: { id: 11, name: "Barber Club", slug: "barber-club" },
+                        employee: { id: "emp-1", name: "Alex", image: null },
+                        customer: { id: "user-1", name: "Milos", image: null },
+                    },
+                    {
+                        id: 2,
+                        companyId: 11,
+                        employeeId: "emp-1",
+                        userId: "user-1",
+                        serviceId: 7,
+                        startsAt: new Date(now - 86_400_000).toISOString(),
+                        endsAt: new Date(now - 86_400_000 + 1_800_000).toISOString(),
+                        status: "completed",
+                        customerNameSnapshot: "Milos",
+                        customerPhoneSnapshot: null,
+                        customerEmailSnapshot: "milos@example.com",
+                        serviceNameSnapshot: "Haircut",
+                        serviceDurationMinutesSnapshot: 30,
+                        servicePriceCentsSnapshot: 2500,
+                        notesCustomer: null,
                         notesInternal: null,
                         bookedFrom: "public",
                         cancelledAt: null,
@@ -78,7 +112,7 @@ describe("AppointmentsScreen", () => {
         } as never);
         mockedUseCancelOwnAppointment.mockReturnValue({
             mutateAsync,
-            reset: jest.fn(),
+            reset,
             isPending: false,
             isError: false,
             isSuccess: false,
@@ -89,11 +123,29 @@ describe("AppointmentsScreen", () => {
 
         render(<AppointmentsScreen />);
 
-        expect(screen.getByText("Barber Club · Haircut")).toBeTruthy();
+        expect(screen.getByText("Upcoming")).toBeTruthy();
+        expect(screen.getByText("History")).toBeTruthy();
+        expect(screen.getAllByText("Barber Club · Haircut")).toHaveLength(2);
         expect(screen.getByText("Notes: Please be on time")).toBeTruthy();
+        expect(screen.getAllByText("Book again")).toHaveLength(2);
+        expect(screen.getAllByText("Open shop")).toHaveLength(2);
 
         fireEvent.press(screen.getByText("Cancel appointment"));
 
+        expect(mockedAlert).toHaveBeenCalledWith(
+            "Cancel appointment?",
+            "This will release the slot if the shop still accepts changes.",
+            expect.any(Array),
+        );
+
+        const buttons = mockedAlert.mock.calls[0]?.[2];
+        const destructiveButton = Array.isArray(buttons)
+            ? buttons.find((button) => button.text === "Cancel appointment")
+            : null;
+
+        destructiveButton?.onPress?.();
+
+        expect(reset).toHaveBeenCalled();
         expect(mutateAsync).toHaveBeenCalledWith(1);
     });
 });

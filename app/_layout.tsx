@@ -18,7 +18,15 @@ export default function RootLayout() {
             <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
                 <Stack>
                     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                    <Stack.Screen name="(auth)" options={{ headerShown: false, presentation: "modal" }} />
+                    <Stack.Screen
+                        name="(auth)/sign-in"
+                        options={{
+                            headerShown: false,
+                            presentation: "modal",
+                            animation: "slide_from_bottom",
+                            gestureEnabled: true,
+                        }}
+                    />
                 </Stack>
                 <StatusBar style="auto" />
             </ThemeProvider>

@@ -1,4 +1,4 @@
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
 import MapView, { Marker, type Region } from "react-native-maps";
@@ -22,14 +22,6 @@ function formatDistance(distanceMeters?: number) {
     }
 
     return `${Math.round(distanceMeters)} m`;
-}
-
-function getCityFilters(companies: PublicCompany[]) {
-    const cities = companies
-        .map((company) => company.city?.trim())
-        .filter((city): city is string => Boolean(city));
-
-    return Array.from(new Set(cities)).sort((left, right) => left.localeCompare(right));
 }
 
 function getMapCompanies(companies: PublicCompany[]) {
@@ -71,6 +63,20 @@ function getInitialRegion(companies: Array<PublicCompany & { latitude: number; l
         latitudeDelta: Math.max((maxLatitude - minLatitude) * 1.6, 0.04),
         longitudeDelta: Math.max((maxLongitude - minLongitude) * 1.6, 0.04),
     };
+}
+
+function isCompanyInRegion(company: PublicCompany & { latitude: number; longitude: number }, region: Region) {
+    const latitudeMin = region.latitude - region.latitudeDelta / 2;
+    const latitudeMax = region.latitude + region.latitudeDelta / 2;
+    const longitudeMin = region.longitude - region.longitudeDelta / 2;
+    const longitudeMax = region.longitude + region.longitudeDelta / 2;
+
+    return (
+        company.latitude >= latitudeMin &&
+        company.latitude <= latitudeMax &&
+        company.longitude >= longitudeMin &&
+        company.longitude <= longitudeMax
+    );
 }
 
 function CompanyCard({
@@ -119,10 +125,9 @@ function CompanyCard({
 }
 
 export function DiscoveryScreen() {
+    const router = useRouter();
     const [mode, setMode] = useState<DiscoveryMode>("list");
     const [query, setQuery] = useState("");
-    const [selectedCity, setSelectedCity] = useState<string | null>(null);
-    const [selectedMapCompanyId, setSelectedMapCompanyId] = useState<number | null>(null);
     const deferredQuery = useDeferredValue(query.trim());
     const companiesQuery = usePublicCompanies({
         query: deferredQuery || undefined,
@@ -138,24 +143,18 @@ export function DiscoveryScreen() {
     const mapBackgroundColor = useThemeColor({ light: "#E5E7EB", dark: "#111214" }, "background");
 
     const companies = companiesQuery.data?.results ?? [];
-    const cityFilters = getCityFilters(companies);
-    const visibleCompanies = selectedCity ? companies.filter((company) => company.city === selectedCity) : companies;
+    const visibleCompanies = companies;
     const mapCompanies = useMemo(() => getMapCompanies(visibleCompanies), [visibleCompanies]);
     const initialRegion = useMemo(() => getInitialRegion(mapCompanies), [mapCompanies]);
-    const selectedMapCompany =
-        mapCompanies.find((company) => company.id === selectedMapCompanyId) ?? mapCompanies[0] ?? null;
+    const [mapRegion, setMapRegion] = useState<Region>(initialRegion);
+    const visibleMapCompanies = useMemo(
+        () => mapCompanies.filter((company) => isCompanyInRegion(company, mapRegion)),
+        [mapCompanies, mapRegion],
+    );
 
     useEffect(() => {
-        if (selectedCity && !cityFilters.includes(selectedCity)) {
-            setSelectedCity(null);
-        }
-    }, [cityFilters, selectedCity]);
-
-    useEffect(() => {
-        if (selectedMapCompanyId && !mapCompanies.some((company) => company.id === selectedMapCompanyId)) {
-            setSelectedMapCompanyId(mapCompanies[0]?.id ?? null);
-        }
-    }, [mapCompanies, selectedMapCompanyId]);
+        setMapRegion(initialRegion);
+    }, [initialRegion]);
 
     return (
         <ScreenShell title="Discover">
@@ -164,7 +163,6 @@ export function DiscoveryScreen() {
                     value={query}
                     onChangeText={(nextValue) => {
                         setQuery(nextValue);
-                        setSelectedCity(null);
                     }}
                     placeholder="Search shops"
                     placeholderTextColor={mutedColor}
@@ -201,43 +199,6 @@ export function DiscoveryScreen() {
                         </Pressable>
                     ))}
                 </View>
-
-                {cityFilters.length > 0 ? (
-                    <View style={styles.chipRow}>
-                        <Pressable
-                            onPress={() => setSelectedCity(null)}
-                            style={[
-                                styles.chip,
-                                {
-                                    backgroundColor: selectedCity == null ? accentColor : chipBackgroundColor,
-                                    borderColor,
-                                },
-                            ]}
-                        >
-                            <ThemedText style={[styles.chipLabel, { color: selectedCity == null ? "#FFFFFF" : textColor }]}>
-                                All
-                            </ThemedText>
-                        </Pressable>
-
-                        {cityFilters.map((city) => (
-                            <Pressable
-                                key={city}
-                                onPress={() => setSelectedCity(city)}
-                                style={[
-                                    styles.chip,
-                                    {
-                                        backgroundColor: selectedCity === city ? accentColor : chipBackgroundColor,
-                                        borderColor,
-                                    },
-                                ]}
-                            >
-                                <ThemedText style={[styles.chipLabel, { color: selectedCity === city ? "#FFFFFF" : textColor }]}>
-                                    {city}
-                                </ThemedText>
-                            </Pressable>
-                        ))}
-                    </View>
-                ) : null}
 
                 {companiesQuery.isPending ? <ThemedText style={[styles.statusText, { color: mutedColor }]}>Loading shops…</ThemedText> : null}
 
@@ -277,7 +238,7 @@ export function DiscoveryScreen() {
                                 <MapView
                                     initialRegion={initialRegion}
                                     style={[styles.map, { backgroundColor: mapBackgroundColor }]}
-                                    onPress={() => setSelectedMapCompanyId(null)}
+                                    onRegionChangeComplete={setMapRegion}
                                 >
                                     {mapCompanies.map((company) => (
                                         <Marker
@@ -285,22 +246,32 @@ export function DiscoveryScreen() {
                                             coordinate={{ latitude: company.latitude, longitude: company.longitude }}
                                             title={company.name}
                                             description={company.city ?? undefined}
-                                            onPress={() => setSelectedMapCompanyId(company.id)}
+                                            onPress={() => {
+                                                router.push({
+                                                    pathname: "/shops/[shopId]",
+                                                    params: { shopId: company.slug },
+                                                });
+                                            }}
                                         />
                                     ))}
                                 </MapView>
                             </View>
 
-                            {selectedMapCompany ? (
-                                <CompanyCard
-                                    company={selectedMapCompany}
-                                    mutedColor={mutedColor}
-                                    cardBackgroundColor={cardBackgroundColor}
-                                    borderColor={borderColor}
-                                />
+                            {visibleMapCompanies.length > 0 ? (
+                                <View style={styles.stack}>
+                                    {visibleMapCompanies.map((company) => (
+                                        <CompanyCard
+                                            key={company.id}
+                                            company={company}
+                                            mutedColor={mutedColor}
+                                            cardBackgroundColor={cardBackgroundColor}
+                                            borderColor={borderColor}
+                                        />
+                                    ))}
+                                </View>
                             ) : (
                                 <ThemedText style={[styles.statusText, { color: mutedColor }]}>
-                                    No mapped shops for this filter.
+                                    No shops are currently visible in this map area.
                                 </ThemedText>
                             )}
                         </View>
@@ -339,23 +310,6 @@ const styles = StyleSheet.create({
         lineHeight: 18,
         fontWeight: "600",
     },
-    chipRow: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        gap: 8,
-    },
-    chip: {
-        minHeight: 34,
-        borderRadius: 999,
-        paddingHorizontal: 12,
-        justifyContent: "center",
-        borderWidth: StyleSheet.hairlineWidth,
-    },
-    chipLabel: {
-        fontSize: 14,
-        lineHeight: 18,
-        fontWeight: "600",
-    },
     statusText: {
         fontSize: 15,
     },
@@ -375,7 +329,7 @@ const styles = StyleSheet.create({
         borderWidth: StyleSheet.hairlineWidth,
     },
     map: {
-        height: 320,
+        height: 440,
         width: "100%",
     },
     companyCard: {
