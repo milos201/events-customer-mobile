@@ -1,7 +1,7 @@
 import type { Href } from "expo-router";
-import { usePathname } from "expo-router";
-import { useMemo } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { usePathname, useRouter } from "expo-router";
+import { useMemo, useState } from "react";
+import { Alert, Pressable, StyleSheet, View } from "react-native";
 
 import { ApiError, ApiUnauthorizedError } from "@/api/http";
 import type { AppointmentRecord } from "@/api/types";
@@ -9,21 +9,11 @@ import { ThemedText } from "@/components/themed-text";
 import { useCancelOwnAppointment, useOwnAppointments } from "@/features/account/queries";
 import { AuthGate } from "@/features/auth/components/auth-gate";
 import { useAuthSession } from "@/features/auth/session-provider";
-import { ActionButton, ActionGroup, ActionLink, BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
+import { useAppTheme } from "@/hooks/use-app-theme";
+import { Fonts, Radius, Shadows, Spacing, Typography } from "@/theme";
+import { ScreenShell } from "@/ui/screen-shell";
 
-function formatDateRange(appointment: AppointmentRecord) {
-    const startsAt = new Date(appointment.startsAt);
-    const endsAt = new Date(appointment.endsAt);
-
-    return new Intl.DateTimeFormat("en-US", {
-        dateStyle: "medium",
-        timeStyle: "short",
-    }).format(startsAt).concat(" - ").concat(
-        new Intl.DateTimeFormat("en-US", {
-            timeStyle: "short",
-        }).format(endsAt),
-    );
-}
+type AppointmentsTab = "upcoming" | "past";
 
 function canCancelAppointment(appointment: AppointmentRecord) {
     const startsAt = new Date(appointment.startsAt);
@@ -34,38 +24,6 @@ function isUpcomingAppointment(appointment: AppointmentRecord) {
     return canCancelAppointment(appointment);
 }
 
-function getStatusTone(status: AppointmentRecord["status"]) {
-    switch (status) {
-        case "confirmed":
-            return {
-                backgroundColor: "rgba(34, 197, 94, 0.14)",
-                color: "#166534",
-            };
-        case "pending":
-            return {
-                backgroundColor: "rgba(245, 158, 11, 0.16)",
-                color: "#92400E",
-            };
-        case "completed":
-            return {
-                backgroundColor: "rgba(10, 126, 164, 0.14)",
-                color: "#0A7EA4",
-            };
-        case "cancelled":
-        case "rejected":
-        case "noShow":
-            return {
-                backgroundColor: "rgba(107, 114, 128, 0.18)",
-                color: "#4B5563",
-            };
-        default:
-            return {
-                backgroundColor: "rgba(107, 114, 128, 0.18)",
-                color: "#4B5563",
-            };
-    }
-}
-
 function formatStatusLabel(status: AppointmentRecord["status"]) {
     switch (status) {
         case "noShow":
@@ -73,6 +31,33 @@ function formatStatusLabel(status: AppointmentRecord["status"]) {
         default:
             return status.charAt(0).toUpperCase() + status.slice(1);
     }
+}
+
+function formatDateLabel(value: string) {
+    const date = new Date(value);
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+
+    if (date.toDateString() === today.toDateString()) {
+        return "Today";
+    }
+
+    if (date.toDateString() === tomorrow.toDateString()) {
+        return "Tomorrow";
+    }
+
+    return new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+    }).format(date);
+}
+
+function formatTimeLabel(value: string) {
+    return new Intl.DateTimeFormat("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+    }).format(new Date(value));
 }
 
 function getUserFacingErrorMessage(error: unknown, fallback: string) {
@@ -98,24 +83,167 @@ function getUserFacingErrorMessage(error: unknown, fallback: string) {
     return fallback;
 }
 
+function getStatusTone(status: AppointmentRecord["status"], theme: ReturnType<typeof useAppTheme>) {
+    switch (status) {
+        case "confirmed":
+            return {
+                backgroundColor: theme.successSurface,
+                color: theme.success,
+            };
+        case "pending":
+            return {
+                backgroundColor: theme.warningSurface,
+                color: theme.warning,
+            };
+        case "completed":
+            return {
+                backgroundColor: theme.tintMuted,
+                color: theme.tint,
+            };
+        case "cancelled":
+        case "rejected":
+        case "noShow":
+            return {
+                backgroundColor: theme.surfaceMuted,
+                color: theme.textMuted,
+            };
+        default:
+            return {
+                backgroundColor: theme.surfaceMuted,
+                color: theme.textMuted,
+            };
+    }
+}
+
+function CountPill({
+    count,
+    backgroundColor,
+    color,
+}: {
+    count: number;
+    backgroundColor: string;
+    color: string;
+}) {
+    return (
+        <View style={[styles.countPill, { backgroundColor }]}>
+            <ThemedText style={[styles.countPillText, { color }]}>{count}</ThemedText>
+        </View>
+    );
+}
+
+function AppointmentCard({
+    appointment,
+    onOpenShop,
+    onBookAgain,
+    onCancel,
+    isCancelling,
+}: {
+    appointment: AppointmentRecord;
+    onOpenShop: () => void;
+    onBookAgain: () => void;
+    onCancel?: () => void;
+    isCancelling: boolean;
+}) {
+    const theme = useAppTheme();
+    const statusTone = getStatusTone(appointment.status, theme);
+
+    return (
+        <View
+            style={[
+                styles.card,
+                Shadows.card,
+                { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
+            ]}
+        >
+            <View style={styles.cardHeader}>
+                <View style={styles.cardHeaderCopy}>
+                    <ThemedText type="defaultSemiBold" style={styles.cardTitle}>
+                        {appointment.company?.name ?? "Shop"}
+                    </ThemedText>
+                    <ThemedText style={[styles.cardSubtitle, { color: theme.textMuted }]}>
+                        {appointment.serviceNameSnapshot}
+                    </ThemedText>
+                </View>
+                <View style={[styles.statusChip, { backgroundColor: statusTone.backgroundColor }]}>
+                    <ThemedText style={[styles.statusChipText, { color: statusTone.color }]}>
+                        {formatStatusLabel(appointment.status)}
+                    </ThemedText>
+                </View>
+            </View>
+
+            <View style={styles.infoStack}>
+                <View style={styles.infoRow}>
+                    <ThemedText style={[styles.infoLabel, { color: theme.textMuted }]}>Service</ThemedText>
+                    <ThemedText type="defaultSemiBold" style={styles.infoValue}>
+                        {appointment.serviceNameSnapshot}
+                    </ThemedText>
+                </View>
+                <View style={styles.infoRow}>
+                    <ThemedText style={[styles.infoLabel, { color: theme.textMuted }]}>Barber</ThemedText>
+                    <ThemedText type="defaultSemiBold" style={styles.infoValue}>
+                        {appointment.employee?.name ?? "Assigned by shop"}
+                    </ThemedText>
+                </View>
+                <View style={styles.infoRow}>
+                    <ThemedText style={[styles.infoLabel, { color: theme.textMuted }]}>Date & Time</ThemedText>
+                    <ThemedText type="defaultSemiBold" style={styles.infoValue}>
+                        {formatDateLabel(appointment.startsAt)} • {formatTimeLabel(appointment.startsAt)}
+                    </ThemedText>
+                </View>
+            </View>
+
+            <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+            <View style={styles.actionsRow}>
+                <Pressable
+                    onPress={onOpenShop}
+                    style={[styles.actionChip, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                >
+                    <ThemedText style={[styles.actionChipText, { color: theme.text }]}>Open shop</ThemedText>
+                </Pressable>
+
+                <Pressable
+                    onPress={onBookAgain}
+                    style={[styles.actionChip, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                >
+                    <ThemedText style={[styles.actionChipText, { color: theme.text }]}>Book again</ThemedText>
+                </Pressable>
+
+                {onCancel ? (
+                    <Pressable
+                        onPress={onCancel}
+                        style={[styles.actionChip, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                    >
+                        <ThemedText style={[styles.actionChipText, { color: theme.danger }]}>
+                            {isCancelling ? "Cancelling…" : "Cancel"}
+                        </ThemedText>
+                    </Pressable>
+                ) : null}
+            </View>
+        </View>
+    );
+}
+
 export function AppointmentsScreen() {
+    const router = useRouter();
     const pathname = usePathname();
+    const theme = useAppTheme();
     const { status, user } = useAuthSession();
     const appointmentsQuery = useOwnAppointments(status === "authenticated");
     const cancelAppointment = useCancelOwnAppointment();
+    const [activeTab, setActiveTab] = useState<AppointmentsTab>("upcoming");
     const appointments = appointmentsQuery.data?.results ?? [];
+
     const upcomingAppointments = useMemo(
         () => appointments.filter(isUpcomingAppointment),
         [appointments],
     );
-    const historyAppointments = useMemo(
+    const pastAppointments = useMemo(
         () => appointments.filter((appointment) => !isUpcomingAppointment(appointment)),
         [appointments],
     );
-    const cancellableIds = useMemo(
-        () => new Set(appointments.filter(canCancelAppointment).map((appointment) => appointment.id)),
-        [appointments],
-    );
+
+    const activeAppointments = activeTab === "upcoming" ? upcomingAppointments : pastAppointments;
     const cancellationMessage =
         cancelAppointment.isSuccess && cancelAppointment.data
             ? `Appointment at ${cancelAppointment.data.company?.name ?? "the shop"} cancelled.`
@@ -130,198 +258,251 @@ export function AppointmentsScreen() {
     }
 
     return (
-        <ScreenShell
-            title="Appointments"
-            description="Review upcoming bookings, reopen the shop, or book the same service again."
-            showHero={false}
-        >
-            <SectionCard title="Upcoming">
-                {appointmentsQuery.isPending ? <ThemedText>Loading appointments…</ThemedText> : null}
-
-                {appointmentsQuery.isError ? (
-                    <ThemedText>
-                        {getUserFacingErrorMessage(
-                            appointmentsQuery.error,
-                            `Could not load appointments for ${user?.email ?? "the current customer"}.`,
-                        )}
+        <ScreenShell title="My Bookings" description="Manage your appointments">
+            <View style={[styles.tabRow, Shadows.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <Pressable
+                    onPress={() => setActiveTab("upcoming")}
+                    style={[
+                        styles.tabButton,
+                        activeTab === "upcoming"
+                            ? [styles.tabButtonActive, Shadows.card, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]
+                            : styles.tabButtonIdle,
+                    ]}
+                >
+                    <ThemedText style={[styles.tabButtonText, { color: activeTab === "upcoming" ? theme.text : theme.textMuted }]}>
+                        Upcoming
                     </ThemedText>
-                ) : null}
+                    {upcomingAppointments.length ? (
+                        <CountPill
+                            count={upcomingAppointments.length}
+                            backgroundColor={theme.tintMuted}
+                            color={theme.tint}
+                        />
+                    ) : null}
+                </Pressable>
 
-                {appointmentsQuery.data && appointments.length === 0 ? (
-                    <ThemedText>No appointments yet.</ThemedText>
-                ) : null}
+                <Pressable
+                    onPress={() => setActiveTab("past")}
+                    style={[
+                        styles.tabButton,
+                        activeTab === "past"
+                            ? [styles.tabButtonActive, Shadows.card, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]
+                            : styles.tabButtonIdle,
+                    ]}
+                >
+                    <ThemedText style={[styles.tabButtonText, { color: activeTab === "past" ? theme.text : theme.textMuted }]}>
+                        Past
+                    </ThemedText>
+                </Pressable>
+            </View>
 
-                {cancellationMessage ? <ThemedText>{cancellationMessage}</ThemedText> : null}
+            {appointmentsQuery.isPending ? (
+                <ThemedText style={{ color: theme.textMuted }}>Loading appointments…</ThemedText>
+            ) : null}
 
-                {cancelAppointment.isError ? (
-                    <ThemedText>{getUserFacingErrorMessage(cancelAppointment.error, "Could not cancel appointment.")}</ThemedText>
-                ) : null}
+            {appointmentsQuery.isError ? (
+                <ThemedText style={{ color: theme.textMuted }}>
+                    {getUserFacingErrorMessage(
+                        appointmentsQuery.error,
+                        `Could not load appointments for ${user?.email ?? "the current customer"}.`,
+                    )}
+                </ThemedText>
+            ) : null}
 
-                {upcomingAppointments.length ? (
-                    <ActionGroup>
-                        {upcomingAppointments.map((appointment) => (
-                            <SectionCard
-                                key={appointment.id}
-                                title={`${appointment.company?.name ?? "Company"} · ${appointment.serviceNameSnapshot}`}
-                            >
-                                <View style={styles.metaRow}>
-                                    <View
-                                        style={[
-                                            styles.statusChip,
-                                            { backgroundColor: getStatusTone(appointment.status).backgroundColor },
-                                        ]}
-                                    >
-                                        <ThemedText style={[styles.statusChipText, { color: getStatusTone(appointment.status).color }]}>
-                                            {formatStatusLabel(appointment.status)}
-                                        </ThemedText>
-                                    </View>
-                                </View>
-                                <BulletList
-                                    items={[
-                                        `When: ${formatDateRange(appointment)}`,
-                                        `Employee: ${appointment.employee?.name ?? "Assigned by shop"}`,
-                                        `Price: ${(appointment.servicePriceCentsSnapshot / 100).toFixed(2)}`,
-                                    ]}
-                                />
-                                {appointment.notesCustomer ? (
-                                    <ThemedText>Notes: {appointment.notesCustomer}</ThemedText>
-                                ) : null}
-                                <ActionGroup>
-                                    {appointment.company ? (
-                                        <ActionLink
-                                            href={{
-                                                pathname: "/shops/[shopId]",
-                                                params: { shopId: appointment.company.slug },
-                                            }}
-                                            label="Open shop"
-                                            variant="secondary"
-                                        />
-                                    ) : null}
-                                    {appointment.company ? (
-                                        <ActionLink
-                                            href={{
-                                                pathname: "/booking/[shopId]",
-                                                params: {
-                                                    shopId: appointment.company.slug,
-                                                    serviceId: String(appointment.serviceId),
-                                                },
-                                            }}
-                                            label="Book again"
-                                        />
-                                    ) : null}
-                                    {cancellableIds.has(appointment.id) ? (
-                                        <ActionButton
-                                            label={
-                                                cancelAppointment.isPending && cancelAppointment.variables === appointment.id
-                                                    ? "Cancelling…"
-                                                    : "Cancel appointment"
-                                            }
-                                            variant="secondary"
-                                            onPress={() => {
-                                                Alert.alert(
-                                                    "Cancel appointment?",
-                                                    "This will release the slot if the shop still accepts changes.",
-                                                    [
-                                                        {
-                                                            text: "Keep appointment",
-                                                            style: "cancel",
-                                                        },
-                                                        {
-                                                            text: "Cancel appointment",
-                                                            style: "destructive",
-                                                            onPress: () => {
-                                                                cancelAppointment.reset();
-                                                                void cancelAppointment.mutateAsync(appointment.id);
-                                                            },
-                                                        },
-                                                    ],
-                                                );
-                                            }}
-                                        />
-                                    ) : null}
-                                </ActionGroup>
-                            </SectionCard>
-                        ))}
-                    </ActionGroup>
-                ) : appointmentsQuery.data && appointments.length > 0 ? (
-                    <ThemedText>No upcoming appointments.</ThemedText>
-                ) : null}
-            </SectionCard>
+            {cancellationMessage ? (
+                <ThemedText style={{ color: theme.success }}>{cancellationMessage}</ThemedText>
+            ) : null}
 
-            <SectionCard title="History">
-                {historyAppointments.length ? (
-                    <ActionGroup>
-                        {historyAppointments.map((appointment) => (
-                            <SectionCard
-                                key={appointment.id}
-                                title={`${appointment.company?.name ?? "Company"} · ${appointment.serviceNameSnapshot}`}
-                            >
-                                <View style={styles.metaRow}>
-                                    <View
-                                        style={[
-                                            styles.statusChip,
-                                            { backgroundColor: getStatusTone(appointment.status).backgroundColor },
-                                        ]}
-                                    >
-                                        <ThemedText style={[styles.statusChipText, { color: getStatusTone(appointment.status).color }]}>
-                                            {formatStatusLabel(appointment.status)}
-                                        </ThemedText>
-                                    </View>
-                                </View>
-                                <BulletList
-                                    items={[
-                                        `When: ${formatDateRange(appointment)}`,
-                                        `Employee: ${appointment.employee?.name ?? "Assigned by shop"}`,
-                                        `Price: ${(appointment.servicePriceCentsSnapshot / 100).toFixed(2)}`,
-                                    ]}
-                                />
-                                <ActionGroup>
-                                    {appointment.company ? (
-                                        <ActionLink
-                                            href={{
-                                                pathname: "/shops/[shopId]",
-                                                params: { shopId: appointment.company.slug },
-                                            }}
-                                            label="Open shop"
-                                            variant="secondary"
-                                        />
-                                    ) : null}
-                                    {appointment.company ? (
-                                        <ActionLink
-                                            href={{
-                                                pathname: "/booking/[shopId]",
-                                                params: {
-                                                    shopId: appointment.company.slug,
-                                                    serviceId: String(appointment.serviceId),
-                                                },
-                                            }}
-                                            label="Book again"
-                                        />
-                                    ) : null}
-                                </ActionGroup>
-                            </SectionCard>
-                        ))}
-                    </ActionGroup>
-                ) : appointmentsQuery.data && appointments.length > 0 ? (
-                    <ThemedText>No past appointments yet.</ThemedText>
-                ) : null}
-            </SectionCard>
+            {cancelAppointment.isError ? (
+                <ThemedText style={{ color: theme.danger }}>
+                    {getUserFacingErrorMessage(cancelAppointment.error, "Could not cancel appointment.")}
+                </ThemedText>
+            ) : null}
+
+            {!appointmentsQuery.isPending && !appointmentsQuery.isError && appointments.length === 0 ? (
+                <ThemedText style={{ color: theme.textMuted }}>No bookings yet.</ThemedText>
+            ) : null}
+
+            {!appointmentsQuery.isPending && !appointmentsQuery.isError && appointments.length > 0 && activeAppointments.length === 0 ? (
+                <ThemedText style={{ color: theme.textMuted }}>
+                    {activeTab === "upcoming" ? "No upcoming bookings." : "No past bookings."}
+                </ThemedText>
+            ) : null}
+
+            {activeAppointments.length ? (
+                <View style={styles.cardsStack}>
+                    {activeAppointments.map((appointment) => (
+                        <AppointmentCard
+                            key={appointment.id}
+                            appointment={appointment}
+                            isCancelling={cancelAppointment.isPending && cancelAppointment.variables === appointment.id}
+                            onOpenShop={() => {
+                                if (!appointment.company) {
+                                    return;
+                                }
+
+                                router.push({
+                                    pathname: "/shops/[shopId]",
+                                    params: { shopId: appointment.company.slug },
+                                });
+                            }}
+                            onBookAgain={() => {
+                                if (!appointment.company) {
+                                    return;
+                                }
+
+                                router.push({
+                                    pathname: "/booking/[shopId]",
+                                    params: {
+                                        shopId: appointment.company.slug,
+                                        serviceId: String(appointment.serviceId),
+                                    },
+                                });
+                            }}
+                            onCancel={
+                                canCancelAppointment(appointment)
+                                    ? () => {
+                                          Alert.alert(
+                                              "Cancel appointment?",
+                                              "This will release the slot if the shop still accepts changes.",
+                                              [
+                                                  {
+                                                      text: "Keep appointment",
+                                                      style: "cancel",
+                                                  },
+                                                  {
+                                                      text: "Cancel appointment",
+                                                      style: "destructive",
+                                                      onPress: () => {
+                                                          cancelAppointment.reset();
+                                                          void cancelAppointment.mutateAsync(appointment.id);
+                                                      },
+                                                  },
+                                              ],
+                                          );
+                                      }
+                                    : undefined
+                            }
+                        />
+                    ))}
+                </View>
+            ) : null}
         </ScreenShell>
     );
 }
 
 const styles = StyleSheet.create({
-    metaRow: {
+    tabRow: {
         flexDirection: "row",
-        justifyContent: "flex-start",
+        gap: Spacing.xs,
+        borderRadius: Radius.xl,
+        borderWidth: StyleSheet.hairlineWidth,
+        padding: 6,
+    },
+    tabButton: {
+        flex: 1,
+        minHeight: 52,
+        borderRadius: Radius.lg,
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "row",
+        gap: Spacing.xs,
+        paddingHorizontal: Spacing.md,
+    },
+    tabButtonActive: {
+        borderWidth: StyleSheet.hairlineWidth,
+    },
+    tabButtonIdle: {
+        backgroundColor: "transparent",
+    },
+    tabButtonText: {
+        fontSize: 16,
+        lineHeight: 20,
+        fontWeight: "600",
+        fontFamily: Fonts.sans,
+    },
+    countPill: {
+        minWidth: 22,
+        height: 22,
+        borderRadius: Radius.full,
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 6,
+    },
+    countPillText: {
+        ...Typography.label,
+        fontFamily: Fonts.sans,
+    },
+    cardsStack: {
+        gap: Spacing.md,
+    },
+    card: {
+        borderRadius: Radius.lg,
+        borderWidth: StyleSheet.hairlineWidth,
+        padding: Spacing.md,
+        gap: Spacing.md,
+    },
+    cardHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        gap: Spacing.md,
+    },
+    cardHeaderCopy: {
+        flex: 1,
+        gap: 2,
+    },
+    cardTitle: {
+        fontFamily: Fonts.sans,
+    },
+    cardSubtitle: {
+        ...Typography.bodySm,
+        fontFamily: Fonts.sans,
     },
     statusChip: {
         paddingHorizontal: 10,
         paddingVertical: 6,
-        borderRadius: 999,
+        borderRadius: Radius.full,
     },
     statusChipText: {
-        fontSize: 13,
-        fontWeight: "600",
+        ...Typography.label,
+        fontFamily: Fonts.sans,
+    },
+    infoStack: {
+        gap: Spacing.xs,
+    },
+    infoRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        gap: Spacing.md,
+    },
+    infoLabel: {
+        ...Typography.bodySm,
+        fontFamily: Fonts.sans,
+    },
+    infoValue: {
+        flexShrink: 1,
+        textAlign: "right",
+        fontFamily: Fonts.sans,
+    },
+    divider: {
+        height: StyleSheet.hairlineWidth,
+    },
+    actionsRow: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: Spacing.xs,
+    },
+    actionChip: {
+        minHeight: 38,
+        borderRadius: Radius.full,
+        borderWidth: StyleSheet.hairlineWidth,
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 14,
+    },
+    actionChipText: {
+        ...Typography.label,
+        fontFamily: Fonts.sans,
     },
 });

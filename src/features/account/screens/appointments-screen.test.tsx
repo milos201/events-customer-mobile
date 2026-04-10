@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { Alert } from "react-native";
 
-import { AppointmentsScreen } from "@/features/account/screens/appointments-screen";
 import { useCancelOwnAppointment, useOwnAppointments } from "@/features/account/queries";
+import { AppointmentsScreen } from "@/features/account/screens/appointments-screen";
 import { useAuthSession } from "@/features/auth/session-provider";
 
 jest.mock("@/features/auth/session-provider", () => ({
@@ -14,16 +14,14 @@ jest.mock("@/features/account/queries", () => ({
     useCancelOwnAppointment: jest.fn(),
 }));
 
-jest.mock("expo-router", () => {
-    const React = require("react");
-    const { Text } = require("react-native");
+const mockPush = jest.fn();
 
-    return {
-        Link: ({ children }: { children: React.ReactNode }) => children,
-        useRouter: () => ({ canGoBack: () => false, back: jest.fn(), replace: jest.fn() }),
-        usePathname: () => "/appointments",
-    };
-});
+jest.mock("expo-router", () => ({
+    useRouter: () => ({
+        push: mockPush,
+    }),
+    usePathname: () => "/appointments",
+}));
 
 const mockedUseAuthSession = jest.mocked(useAuthSession);
 const mockedUseOwnAppointments = jest.mocked(useOwnAppointments);
@@ -33,12 +31,8 @@ const mockedAlert = jest.spyOn(Alert, "alert").mockImplementation(jest.fn());
 describe("AppointmentsScreen", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-    });
-
-    it("groups appointments and confirms cancellation before mutating", () => {
-        const mutateAsync = jest.fn();
-        const reset = jest.fn();
-        const now = Date.now();
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date(2026, 3, 10, 9, 0, 0));
 
         mockedUseAuthSession.mockReturnValue({
             status: "authenticated",
@@ -48,6 +42,13 @@ describe("AppointmentsScreen", () => {
             createAccount: jest.fn(),
             signOut: jest.fn(),
         });
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    it("shows upcoming bookings by default and switches to past bookings", () => {
         mockedUseOwnAppointments.mockReturnValue({
             data: {
                 results: [
@@ -57,39 +58,13 @@ describe("AppointmentsScreen", () => {
                         employeeId: "emp-1",
                         userId: "user-1",
                         serviceId: 7,
-                        startsAt: new Date(now + 86_400_000).toISOString(),
-                        endsAt: new Date(now + 86_400_000 + 1_800_000).toISOString(),
+                        startsAt: "2026-04-11T12:30:00.000Z",
+                        endsAt: "2026-04-11T13:00:00.000Z",
                         status: "confirmed",
                         customerNameSnapshot: "Milos",
                         customerPhoneSnapshot: null,
                         customerEmailSnapshot: "milos@example.com",
-                        serviceNameSnapshot: "Haircut",
-                        serviceDurationMinutesSnapshot: 30,
-                        servicePriceCentsSnapshot: 2500,
-                        notesCustomer: "Please be on time",
-                        notesInternal: null,
-                        bookedFrom: "public",
-                        cancelledAt: null,
-                        rejectedAt: null,
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
-                        company: { id: 11, name: "Barber Club", slug: "barber-club" },
-                        employee: { id: "emp-1", name: "Alex", image: null },
-                        customer: { id: "user-1", name: "Milos", image: null },
-                    },
-                    {
-                        id: 2,
-                        companyId: 11,
-                        employeeId: "emp-1",
-                        userId: "user-1",
-                        serviceId: 7,
-                        startsAt: new Date(now - 86_400_000).toISOString(),
-                        endsAt: new Date(now - 86_400_000 + 1_800_000).toISOString(),
-                        status: "completed",
-                        customerNameSnapshot: "Milos",
-                        customerPhoneSnapshot: null,
-                        customerEmailSnapshot: "milos@example.com",
-                        serviceNameSnapshot: "Haircut",
+                        serviceNameSnapshot: "Fade Haircut",
                         serviceDurationMinutesSnapshot: 30,
                         servicePriceCentsSnapshot: 2500,
                         notesCustomer: null,
@@ -100,7 +75,98 @@ describe("AppointmentsScreen", () => {
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString(),
                         company: { id: 11, name: "Barber Club", slug: "barber-club" },
-                        employee: { id: "emp-1", name: "Alex", image: null },
+                        employee: { id: "emp-1", name: "Marcus", image: null },
+                        customer: { id: "user-1", name: "Milos", image: null },
+                    },
+                    {
+                        id: 2,
+                        companyId: 12,
+                        employeeId: "emp-2",
+                        userId: "user-1",
+                        serviceId: 8,
+                        startsAt: "2026-04-08T10:00:00.000Z",
+                        endsAt: "2026-04-08T10:30:00.000Z",
+                        status: "completed",
+                        customerNameSnapshot: "Milos",
+                        customerPhoneSnapshot: null,
+                        customerEmailSnapshot: "milos@example.com",
+                        serviceNameSnapshot: "Beard Trim",
+                        serviceDurationMinutesSnapshot: 30,
+                        servicePriceCentsSnapshot: 1800,
+                        notesCustomer: null,
+                        notesInternal: null,
+                        bookedFrom: "public",
+                        cancelledAt: null,
+                        rejectedAt: null,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                        company: { id: 12, name: "Old Town Barbers", slug: "old-town-barbers" },
+                        employee: { id: "emp-2", name: "Alex", image: null },
+                        customer: { id: "user-1", name: "Milos", image: null },
+                    },
+                ],
+                nextCursor: null,
+            },
+            isPending: false,
+            isError: false,
+            error: null,
+        } as never);
+        mockedUseCancelOwnAppointment.mockReturnValue({
+            mutateAsync: jest.fn(),
+            reset: jest.fn(),
+            isPending: false,
+            isError: false,
+            isSuccess: false,
+            error: null,
+            data: null,
+            variables: undefined,
+        } as never);
+
+        render(<AppointmentsScreen />);
+
+        expect(screen.getByText("My Bookings")).toBeTruthy();
+        expect(screen.getByText("Barber Club")).toBeTruthy();
+        expect(screen.queryByText("Old Town Barbers")).toBeNull();
+        expect(screen.getByText("Upcoming")).toBeTruthy();
+        expect(screen.getByText("Past")).toBeTruthy();
+
+        fireEvent.press(screen.getByText("Past"));
+
+        expect(screen.getByText("Old Town Barbers")).toBeTruthy();
+        expect(screen.queryByText("Barber Club")).toBeNull();
+    });
+
+    it("confirms cancellation before mutating the upcoming booking", () => {
+        const mutateAsync = jest.fn();
+        const reset = jest.fn();
+
+        mockedUseOwnAppointments.mockReturnValue({
+            data: {
+                results: [
+                    {
+                        id: 1,
+                        companyId: 11,
+                        employeeId: "emp-1",
+                        userId: "user-1",
+                        serviceId: 7,
+                        startsAt: "2026-04-11T12:30:00.000Z",
+                        endsAt: "2026-04-11T13:00:00.000Z",
+                        status: "confirmed",
+                        customerNameSnapshot: "Milos",
+                        customerPhoneSnapshot: null,
+                        customerEmailSnapshot: "milos@example.com",
+                        serviceNameSnapshot: "Fade Haircut",
+                        serviceDurationMinutesSnapshot: 30,
+                        servicePriceCentsSnapshot: 2500,
+                        notesCustomer: null,
+                        notesInternal: null,
+                        bookedFrom: "public",
+                        cancelledAt: null,
+                        rejectedAt: null,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                        company: { id: 11, name: "Barber Club", slug: "barber-club" },
+                        employee: { id: "emp-1", name: "Marcus", image: null },
                         customer: { id: "user-1", name: "Milos", image: null },
                     },
                 ],
@@ -123,14 +189,7 @@ describe("AppointmentsScreen", () => {
 
         render(<AppointmentsScreen />);
 
-        expect(screen.getByText("Upcoming")).toBeTruthy();
-        expect(screen.getByText("History")).toBeTruthy();
-        expect(screen.getAllByText("Barber Club · Haircut")).toHaveLength(2);
-        expect(screen.getByText("Notes: Please be on time")).toBeTruthy();
-        expect(screen.getAllByText("Book again")).toHaveLength(2);
-        expect(screen.getAllByText("Open shop")).toHaveLength(2);
-
-        fireEvent.press(screen.getByText("Cancel appointment"));
+        fireEvent.press(screen.getByText("Cancel"));
 
         expect(mockedAlert).toHaveBeenCalledWith(
             "Cancel appointment?",

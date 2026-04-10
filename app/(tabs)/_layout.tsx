@@ -30,6 +30,7 @@ export default function TabsLayout() {
                 name="appointments"
                 options={{
                     title: "Appointments",
+                    headerShown: false,
                     tabBarIcon: ({ color }) => <IconSymbol size={28} name="calendar" color={color} />,
                 }}
             />
