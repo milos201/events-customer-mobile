@@ -14,6 +14,7 @@ export default function TabsLayout() {
             screenOptions={{
                 tabBarButton: HapticTab,
                 tabBarActiveTintColor: Colors[resolvedScheme].tint,
+                headerShown: false,
                 headerTintColor: Colors[resolvedScheme].tint,
                 headerShadowVisible: false,
             }}
@@ -22,7 +23,6 @@ export default function TabsLayout() {
                 name="(discover)"
                 options={{
                     title: "Discover",
-                    headerShown: false,
                     tabBarIcon: ({ color }) => <IconSymbol size={28} name="magnifyingglass" color={color} />,
                 }}
             />
@@ -30,7 +30,6 @@ export default function TabsLayout() {
                 name="appointments"
                 options={{
                     title: "Appointments",
-                    headerShown: false,
                     tabBarIcon: ({ color }) => <IconSymbol size={28} name="calendar" color={color} />,
                 }}
             />
