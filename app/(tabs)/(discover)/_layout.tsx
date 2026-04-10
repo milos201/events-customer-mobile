@@ -1,7 +1,5 @@
 import { Stack } from "expo-router";
 
-import { HeaderActionLink } from "@/components/ui/header-action-link";
-
 export default function DiscoverLayout() {
     return (
         <Stack
@@ -26,7 +24,7 @@ export default function DiscoverLayout() {
                 name="booking/[shopId]"
                 options={{
                     title: "Book appointment",
-                    headerRight: () => <HeaderActionLink href="/appointments" label="Appointments" />,
+                    headerShown: false,
                 }}
             />
         </Stack>

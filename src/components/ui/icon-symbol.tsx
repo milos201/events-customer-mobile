@@ -12,6 +12,7 @@ type IconSymbolName =
     | "calendar"
     | "person.fill"
     | "mappin.and.ellipse"
+    | "chevron.left"
     | "chevron.left.forwardslash.chevron.right"
     | "chevron.right";
 
@@ -29,6 +30,7 @@ const MAPPING = {
     calendar: "calendar-today",
     "person.fill": "person",
     "mappin.and.ellipse": "near-me",
+    "chevron.left": "chevron-left",
     "chevron.left.forwardslash.chevron.right": "code",
     "chevron.right": "chevron-right",
 } as IconMapping;

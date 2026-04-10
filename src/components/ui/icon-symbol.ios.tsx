@@ -8,6 +8,7 @@ type IconSymbolName =
     | "calendar"
     | "person.fill"
     | "mappin.and.ellipse"
+    | "chevron.left"
     | "chevron.left.forwardslash.chevron.right"
     | "chevron.right";
 
@@ -20,6 +21,7 @@ const MAPPING = {
     calendar: "calendar",
     "person.fill": "person.fill",
     "mappin.and.ellipse": "location.north.fill",
+    "chevron.left": "chevron.left",
     "chevron.left.forwardslash.chevron.right": "chevron.left.forwardslash.chevron.right",
     "chevron.right": "chevron.right",
 } as const satisfies NativeSymbolMapping;
