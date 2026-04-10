@@ -27,10 +27,7 @@ export function SignInScreen() {
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const bookingFallbackHref: Href =
-        safeReturnTo.toString().startsWith("/booking/") || safeReturnTo.toString().startsWith("/(public)/booking/")
-            ? safeReturnTo
-            : "/";
+    const bookingFallbackHref: Href = safeReturnTo.toString().startsWith("/booking/") ? safeReturnTo : "/";
 
     function dismiss() {
         if (router.canGoBack()) {
@@ -42,10 +39,17 @@ export function SignInScreen() {
     }
 
     useEffect(() => {
-        if (status === "authenticated") {
-            router.replace(safeReturnTo);
+        if (status !== "authenticated" || isSubmitting) {
+            return;
         }
-    }, [router, safeReturnTo, status]);
+
+        if (router.canGoBack()) {
+            router.back();
+            return;
+        }
+
+        router.replace(safeReturnTo);
+    }, [isSubmitting, router, safeReturnTo, status]);
 
     useEffect(() => {
         setAuthMode(mode === "create-account" ? "create-account" : "sign-in");
@@ -209,8 +213,6 @@ export function SignInScreen() {
                                     setErrorMessage(error);
                                     return;
                                 }
-
-                                router.replace(safeReturnTo);
                             }}
                         />
 

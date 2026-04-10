@@ -16,6 +16,10 @@ import { Fonts, Radius, Shadows, Spacing, Typography } from "@/theme";
 
 type BookingStep = 1 | 2 | 3 | 4;
 type BarberChoice = "any" | string;
+type BookingSearchParams = {
+    shopId: string;
+    serviceId?: string;
+};
 
 type StepMeta = {
     heading: string;
@@ -53,6 +57,15 @@ function fromLocalDateInputValue(value: string) {
 
 function getBookingDays(count: number) {
     return Array.from({ length: count }, (_, index) => toLocalDateInputValue(addDays(new Date(), index)));
+}
+
+function parseServiceId(value: string | undefined) {
+    if (!value) {
+        return null;
+    }
+
+    const serviceId = Number(value);
+    return Number.isInteger(serviceId) && serviceId > 0 ? serviceId : null;
 }
 
 function formatSummaryDate(value: string) {
@@ -157,7 +170,7 @@ export function BookingScreen() {
     const insets = useSafeAreaInsets();
     const theme = useAppTheme();
     const { status } = useAuthSession();
-    const { shopId } = useLocalSearchParams<{ shopId: string }>();
+    const { shopId, serviceId } = useLocalSearchParams<BookingSearchParams>();
     const resolvedShopId = shopId ?? "shop";
     const companyQuery = usePublicCompanyBundle(resolvedShopId);
     const company = companyQuery.data?.company;
@@ -167,7 +180,7 @@ export function BookingScreen() {
 
     const [step, setStep] = useState<BookingStep>(1);
     const [selectedBarberId, setSelectedBarberId] = useState<BarberChoice | null>(null);
-    const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
+    const [selectedServiceId, setSelectedServiceId] = useState<number | null>(() => parseServiceId(serviceId));
     const [selectedDate, setSelectedDate] = useState(toLocalDateInputValue(new Date()));
     const [selectedStartTime, setSelectedStartTime] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -237,7 +250,7 @@ export function BookingScreen() {
     function handleSelectBarber(nextBarberId: BarberChoice) {
         setSelectedBarberId(nextBarberId);
         setSelectedStartTime(null);
-        setStep(2);
+        setStep(selectedService ? 3 : 2);
     }
 
     function handleSelectService(nextServiceId: number) {

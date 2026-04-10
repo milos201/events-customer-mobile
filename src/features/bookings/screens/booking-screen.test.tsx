@@ -24,6 +24,7 @@ const mockPush = jest.fn();
 const mockReplace = jest.fn();
 const mockNavigate = jest.fn();
 const mockDismissAll = jest.fn();
+let mockSearchParams: { shopId: string; serviceId?: string } = { shopId: "shop-1" };
 
 jest.mock("expo-router", () => ({
     useRouter: () => ({
@@ -35,7 +36,7 @@ jest.mock("expo-router", () => ({
         dismissAll: mockDismissAll,
     }),
     usePathname: () => "/booking/shop-1",
-    useLocalSearchParams: () => ({ shopId: "shop-1" }),
+    useLocalSearchParams: () => mockSearchParams,
 }));
 
 const mockedUseAuthSession = jest.mocked(useAuthSession);
@@ -46,6 +47,7 @@ const mockedUsePublicCompanyBundle = jest.mocked(usePublicCompanyBundle);
 describe("BookingScreen", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockSearchParams = { shopId: "shop-1" };
         jest.useFakeTimers();
         jest.setSystemTime(new Date(2026, 3, 9, 9, 0, 0));
 
@@ -156,6 +158,23 @@ describe("BookingScreen", () => {
         expect(latestAvailabilityCall).toEqual(
             expect.objectContaining({
                 date: "2026-04-10",
+            }),
+        );
+    });
+
+    it("uses a serviceId route param as the initial service selection", () => {
+        mockSearchParams = { shopId: "shop-1", serviceId: "8" };
+
+        render(<BookingScreen />);
+
+        fireEvent.press(screen.getByText("Any Available"));
+
+        const latestAvailabilityCall =
+            mockedUseBookingAvailability.mock.calls[mockedUseBookingAvailability.mock.calls.length - 1]?.[0];
+
+        expect(latestAvailabilityCall).toEqual(
+            expect.objectContaining({
+                serviceId: 8,
             }),
         );
     });

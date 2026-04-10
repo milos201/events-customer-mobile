@@ -1,7 +1,7 @@
 import type { Href } from "expo-router";
 
 import { ThemedText } from "@/components/themed-text";
-import { ActionGroup, ActionLink, ScreenShell, SectionCard } from "@/ui/screen-shell";
+import { ActionGroup, ActionLink, BackAction, ScreenShell, SectionCard } from "@/ui/screen-shell";
 
 type AuthGateProps = {
     title: string;
@@ -28,7 +28,7 @@ export function AuthGate({ title, returnTo }: AuthGateProps) {
                         label="Create account"
                         variant="secondary"
                     />
-                    <ActionLink href="/" label="Back to discover" variant="secondary" />
+                    <BackAction fallbackHref="/" label="Back to discover" />
                 </ActionGroup>
             </SectionCard>
         </ScreenShell>
