@@ -1,8 +1,12 @@
+import { format, isFuture, isToday, isTomorrow, parseISO } from "date-fns";
+
 import type { AppointmentRecord } from "@/api/types";
 
 export function canCancelAppointment(appointment: AppointmentRecord) {
-    const startsAt = new Date(appointment.startsAt);
-    return (appointment.status === "pending" || appointment.status === "confirmed") && startsAt.getTime() > Date.now();
+    return (
+        (appointment.status === "pending" || appointment.status === "confirmed") &&
+        isFuture(parseISO(appointment.startsAt))
+    );
 }
 
 export function isUpcomingAppointment(appointment: AppointmentRecord) {
@@ -10,21 +14,15 @@ export function isUpcomingAppointment(appointment: AppointmentRecord) {
 }
 
 export function formatAppointmentDateLabel(value: string) {
-    const date = new Date(value);
-    const today = new Date();
-    const tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1);
+    const date = parseISO(value);
 
-    if (date.toDateString() === today.toDateString()) {
+    if (isToday(date)) {
         return "Today";
     }
 
-    if (date.toDateString() === tomorrow.toDateString()) {
+    if (isTomorrow(date)) {
         return "Tomorrow";
     }
 
-    return new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-    }).format(date);
+    return format(date, "MMM d");
 }

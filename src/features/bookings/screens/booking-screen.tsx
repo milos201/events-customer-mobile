@@ -1,3 +1,4 @@
+import { addDays, format, isToday, isTomorrow, parse, parseISO } from "date-fns";
 import { type Href, useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
@@ -21,6 +22,8 @@ type StepMeta = {
     description: string;
 };
 
+const LOCAL_DATE_INPUT_FORMAT = "yyyy-MM-dd";
+
 const STEP_META: Record<BookingStep, StepMeta> = {
     1: {
         heading: "Choose a Barber",
@@ -41,23 +44,11 @@ const STEP_META: Record<BookingStep, StepMeta> = {
 };
 
 function toLocalDateInputValue(date: Date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
+    return format(date, LOCAL_DATE_INPUT_FORMAT);
 }
 
 function fromLocalDateInputValue(value: string) {
-    const [year, month, day] = value.split("-").map(Number);
-
-    return new Date(year, (month ?? 1) - 1, day ?? 1);
-}
-
-function addDays(date: Date, amount: number) {
-    const nextDate = new Date(date);
-    nextDate.setDate(nextDate.getDate() + amount);
-    return nextDate;
+    return parse(value, LOCAL_DATE_INPUT_FORMAT, new Date());
 }
 
 function getBookingDays(count: number) {
@@ -65,38 +56,19 @@ function getBookingDays(count: number) {
 }
 
 function formatSummaryDate(value: string) {
-    return new Intl.DateTimeFormat("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-    }).format(new Date(value));
+    return format(parseISO(value), "EEEE, MMMM d");
 }
 
 function formatSummaryDateFromDay(value: string) {
-    return new Intl.DateTimeFormat("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-    }).format(fromLocalDateInputValue(value));
+    return format(fromLocalDateInputValue(value), "EEEE, MMMM d");
 }
 
 function formatDateChip(value: string) {
     const date = fromLocalDateInputValue(value);
-    const todayValue = toLocalDateInputValue(new Date());
-    const tomorrowValue = toLocalDateInputValue(addDays(new Date(), 1));
 
     return {
-        eyebrow:
-            value === todayValue
-                ? "Today"
-                : value === tomorrowValue
-                  ? "Tomorrow"
-                  : new Intl.DateTimeFormat("en-US", {
-                        weekday: "short",
-                    }).format(date),
-        day: new Intl.DateTimeFormat("en-US", {
-            day: "numeric",
-        }).format(date),
+        eyebrow: isToday(date) ? "Today" : isTomorrow(date) ? "Tomorrow" : format(date, "EEE"),
+        day: format(date, "d"),
     };
 }
 

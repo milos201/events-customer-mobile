@@ -4,6 +4,7 @@ import { useAuthSession } from "@/features/auth/session-provider";
 import { useBookingAvailability, useCreateAppointment } from "@/features/bookings/queries";
 import { BookingScreen } from "@/features/bookings/screens/booking-screen";
 import { usePublicCompanyBundle } from "@/features/shops/queries";
+import { formatTimeLabel } from "@/lib/formatters";
 
 jest.mock("@/features/auth/session-provider", () => ({
     useAuthSession: jest.fn(),
@@ -41,13 +42,6 @@ const mockedUseAuthSession = jest.mocked(useAuthSession);
 const mockedUseBookingAvailability = jest.mocked(useBookingAvailability);
 const mockedUseCreateAppointment = jest.mocked(useCreateAppointment);
 const mockedUsePublicCompanyBundle = jest.mocked(usePublicCompanyBundle);
-
-function formatTimeLabel(value: string) {
-    return new Intl.DateTimeFormat("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-    }).format(new Date(value));
-}
 
 describe("BookingScreen", () => {
     beforeEach(() => {

@@ -1,4 +1,5 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { format, parseISO } from "date-fns";
 import Constants from "expo-constants";
 import type { Href } from "expo-router";
 import { usePathname } from "expo-router";
@@ -41,10 +42,7 @@ function formatMemberSince(value: string | null) {
         return "Customer account";
     }
 
-    return `Member since ${new Intl.DateTimeFormat("en-US", {
-        month: "long",
-        year: "numeric",
-    }).format(new Date(value))}`;
+    return `Member since ${format(parseISO(value), "LLLL yyyy")}`;
 }
 
 function StatCard({ value, label }: { value: string; label: string }) {

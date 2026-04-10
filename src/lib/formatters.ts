@@ -1,3 +1,5 @@
+import { format, parseISO } from "date-fns";
+
 export function getInitials(value: string) {
     return value
         .split(" ")
@@ -8,8 +10,5 @@ export function getInitials(value: string) {
 }
 
 export function formatTimeLabel(value: string) {
-    return new Intl.DateTimeFormat("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-    }).format(new Date(value));
+    return format(parseISO(value), "HH:mm");
 }
