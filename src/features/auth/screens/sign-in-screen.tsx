@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { useAuthSession } from "@/features/auth/session-provider";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { Radius, Shadows, Spacing, Typography } from "@/theme";
@@ -99,42 +100,17 @@ export function SignInScreen() {
                             </ThemedText>
                         </View>
 
-                        <View style={styles.segmentRow}>
-                            {[
-                                { key: "sign-in", label: "Sign in" },
-                                { key: "create-account", label: "Create account" },
-                            ].map((option) => {
-                                const selected =
-                                    (option.key === "create-account" && isCreateAccount) ||
-                                    (option.key === "sign-in" && !isCreateAccount);
-
-                                return (
-                                    <Pressable
-                                        key={option.key}
-                                        onPress={() => {
-                                            setAuthMode(option.key === "create-account" ? "create-account" : "sign-in");
-                                            setErrorMessage(null);
-                                        }}
-                                        style={[
-                                            styles.segment,
-                                            {
-                                                backgroundColor: selected ? theme.tint : theme.surface,
-                                                borderColor: selected ? theme.tint : theme.border,
-                                            },
-                                        ]}
-                                    >
-                                        <ThemedText
-                                            style={[
-                                                styles.segmentText,
-                                                { color: selected ? theme.tintForeground : theme.text },
-                                            ]}
-                                        >
-                                            {option.label}
-                                        </ThemedText>
-                                    </Pressable>
-                                );
-                            })}
-                        </View>
+                        <SegmentedControl
+                            value={authMode}
+                            onChange={(nextMode) => {
+                                setAuthMode(nextMode);
+                                setErrorMessage(null);
+                            }}
+                            options={[
+                                { value: "sign-in", label: "Sign in" },
+                                { value: "create-account", label: "Create account" },
+                            ]}
+                        />
 
                         <View style={styles.fieldGroup}>
                             {isCreateAccount ? (
@@ -279,22 +255,6 @@ const styles = StyleSheet.create({
     },
     description: {
         ...Typography.bodySm,
-    },
-    segmentRow: {
-        flexDirection: "row",
-        gap: Spacing.xs,
-    },
-    segment: {
-        flex: 1,
-        minHeight: 40,
-        borderRadius: Radius.md,
-        borderWidth: StyleSheet.hairlineWidth,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    segmentText: {
-        fontSize: 15,
-        fontWeight: "600",
     },
     fieldGroup: {
         gap: Spacing.sm,

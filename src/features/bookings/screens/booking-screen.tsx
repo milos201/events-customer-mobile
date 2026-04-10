@@ -10,6 +10,7 @@ import { useAuthSession } from "@/features/auth/session-provider";
 import { useBookingAvailability, useCreateAppointment } from "@/features/bookings/queries";
 import { usePublicCompanyBundle } from "@/features/shops/queries";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { formatTimeLabel, getInitials } from "@/lib/formatters";
 import { Fonts, Radius, Shadows, Spacing, Typography } from "@/theme";
 
 type BookingStep = 1 | 2 | 3 | 4;
@@ -61,13 +62,6 @@ function addDays(date: Date, amount: number) {
 
 function getBookingDays(count: number) {
     return Array.from({ length: count }, (_, index) => toLocalDateInputValue(addDays(new Date(), index)));
-}
-
-function formatTimeLabel(value: string) {
-    return new Intl.DateTimeFormat("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-    }).format(new Date(value));
 }
 
 function formatSummaryDate(value: string) {
@@ -143,15 +137,6 @@ function getApiErrorMessage(error: unknown) {
     }
 
     return "Something went wrong while processing the booking.";
-}
-
-function getInitials(name: string) {
-    return name
-        .split(" ")
-        .map((part) => part[0] ?? "")
-        .join("")
-        .slice(0, 2)
-        .toUpperCase();
 }
 
 function StepProgress({ step, tintColor, trackColor }: { step: BookingStep; tintColor: string; trackColor: string }) {

@@ -6,23 +6,21 @@ import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { ApiError, ApiUnauthorizedError } from "@/api/http";
 import type { AppointmentRecord } from "@/api/types";
 import { ThemedText } from "@/components/themed-text";
+import { SegmentedControl, SegmentedControlCountBadge } from "@/components/ui/segmented-control";
+import {
+    canCancelAppointment,
+    formatAppointmentDateLabel,
+    isUpcomingAppointment,
+} from "@/features/account/appointment-utils";
 import { useCancelOwnAppointment, useOwnAppointments } from "@/features/account/queries";
 import { AuthGate } from "@/features/auth/components/auth-gate";
 import { useAuthSession } from "@/features/auth/session-provider";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { formatTimeLabel } from "@/lib/formatters";
 import { Fonts, Radius, Shadows, Spacing, Typography } from "@/theme";
 import { ScreenShell } from "@/ui/screen-shell";
 
 type AppointmentsTab = "upcoming" | "past";
-
-function canCancelAppointment(appointment: AppointmentRecord) {
-    const startsAt = new Date(appointment.startsAt);
-    return (appointment.status === "pending" || appointment.status === "confirmed") && startsAt.getTime() > Date.now();
-}
-
-function isUpcomingAppointment(appointment: AppointmentRecord) {
-    return canCancelAppointment(appointment);
-}
 
 function formatStatusLabel(status: AppointmentRecord["status"]) {
     switch (status) {
@@ -31,33 +29,6 @@ function formatStatusLabel(status: AppointmentRecord["status"]) {
         default:
             return status.charAt(0).toUpperCase() + status.slice(1);
     }
-}
-
-function formatDateLabel(value: string) {
-    const date = new Date(value);
-    const today = new Date();
-    const tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) {
-        return "Today";
-    }
-
-    if (date.toDateString() === tomorrow.toDateString()) {
-        return "Tomorrow";
-    }
-
-    return new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-    }).format(date);
-}
-
-function formatTimeLabel(value: string) {
-    return new Intl.DateTimeFormat("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-    }).format(new Date(value));
 }
 
 function getUserFacingErrorMessage(error: unknown, fallback: string) {
@@ -115,14 +86,6 @@ function getStatusTone(status: AppointmentRecord["status"], theme: ReturnType<ty
     }
 }
 
-function CountPill({ count, backgroundColor, color }: { count: number; backgroundColor: string; color: string }) {
-    return (
-        <View style={[styles.countPill, { backgroundColor }]}>
-            <ThemedText style={[styles.countPillText, { color }]}>{count}</ThemedText>
-        </View>
-    );
-}
-
 function AppointmentCard({
     appointment,
     onOpenShop,
@@ -175,7 +138,7 @@ function AppointmentCard({
                 <View style={styles.infoRow}>
                     <ThemedText style={[styles.infoLabel, { color: theme.textMuted }]}>Date & Time</ThemedText>
                     <ThemedText type="defaultSemiBold" style={styles.infoValue}>
-                        {formatDateLabel(appointment.startsAt)} • {formatTimeLabel(appointment.startsAt)}
+                        {formatAppointmentDateLabel(appointment.startsAt)} • {formatTimeLabel(appointment.startsAt)}
                     </ThemedText>
                 </View>
             </View>
@@ -245,57 +208,21 @@ export function AppointmentsScreen() {
 
     return (
         <ScreenShell title="My Bookings" description="Manage your appointments" layout="compact">
-            <View style={[styles.tabRow, Shadows.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <Pressable
-                    onPress={() => setActiveTab("upcoming")}
-                    style={[
-                        styles.tabButton,
-                        activeTab === "upcoming"
-                            ? [
-                                  styles.tabButtonActive,
-                                  Shadows.card,
-                                  { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
-                              ]
-                            : styles.tabButtonIdle,
-                    ]}
-                >
-                    <ThemedText
-                        style={[
-                            styles.tabButtonText,
-                            { color: activeTab === "upcoming" ? theme.text : theme.textMuted },
-                        ]}
-                    >
-                        Upcoming
-                    </ThemedText>
-                    {upcomingAppointments.length ? (
-                        <CountPill
-                            count={upcomingAppointments.length}
-                            backgroundColor={theme.tintMuted}
-                            color={theme.tint}
-                        />
-                    ) : null}
-                </Pressable>
-
-                <Pressable
-                    onPress={() => setActiveTab("past")}
-                    style={[
-                        styles.tabButton,
-                        activeTab === "past"
-                            ? [
-                                  styles.tabButtonActive,
-                                  Shadows.card,
-                                  { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
-                              ]
-                            : styles.tabButtonIdle,
-                    ]}
-                >
-                    <ThemedText
-                        style={[styles.tabButtonText, { color: activeTab === "past" ? theme.text : theme.textMuted }]}
-                    >
-                        Past
-                    </ThemedText>
-                </Pressable>
-            </View>
+            <SegmentedControl
+                value={activeTab}
+                onChange={setActiveTab}
+                variant="surface"
+                size="lg"
+                shadowed
+                options={[
+                    {
+                        value: "upcoming",
+                        label: "Upcoming",
+                        badge: <SegmentedControlCountBadge count={upcomingAppointments.length} />,
+                    },
+                    { value: "past", label: "Past" },
+                ]}
+            />
 
             {appointmentsQuery.isPending ? (
                 <ThemedText style={{ color: theme.textMuted }}>Loading appointments…</ThemedText>
@@ -396,47 +323,6 @@ export function AppointmentsScreen() {
 }
 
 const styles = StyleSheet.create({
-    tabRow: {
-        flexDirection: "row",
-        gap: Spacing.xs,
-        borderRadius: Radius.xl,
-        borderWidth: StyleSheet.hairlineWidth,
-        padding: 6,
-    },
-    tabButton: {
-        flex: 1,
-        minHeight: 52,
-        borderRadius: Radius.lg,
-        alignItems: "center",
-        justifyContent: "center",
-        flexDirection: "row",
-        gap: Spacing.xs,
-        paddingHorizontal: Spacing.md,
-    },
-    tabButtonActive: {
-        borderWidth: StyleSheet.hairlineWidth,
-    },
-    tabButtonIdle: {
-        backgroundColor: "transparent",
-    },
-    tabButtonText: {
-        fontSize: 16,
-        lineHeight: 20,
-        fontWeight: "600",
-        fontFamily: Fonts.sans,
-    },
-    countPill: {
-        minWidth: 22,
-        height: 22,
-        borderRadius: Radius.full,
-        alignItems: "center",
-        justifyContent: "center",
-        paddingHorizontal: 6,
-    },
-    countPillText: {
-        ...Typography.label,
-        fontFamily: Fonts.sans,
-    },
     cardsStack: {
         gap: Spacing.md,
     },

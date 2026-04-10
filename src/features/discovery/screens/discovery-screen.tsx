@@ -7,6 +7,7 @@ import type { PublicCompany } from "@/api/types";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { usePublicCompanies } from "@/features/discovery/queries";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { Radius, Shadows, Spacing, Typography } from "@/theme";
@@ -177,30 +178,14 @@ export function DiscoveryScreen() {
                     ]}
                 />
 
-                <View style={styles.segmentRow}>
-                    {(["list", "map"] as const).map((nextMode) => (
-                        <Pressable
-                            key={nextMode}
-                            onPress={() => setMode(nextMode)}
-                            style={[
-                                styles.segment,
-                                {
-                                    backgroundColor: mode === nextMode ? theme.tint : theme.surface,
-                                    borderColor: mode === nextMode ? theme.tint : theme.border,
-                                },
-                            ]}
-                        >
-                            <ThemedText
-                                style={[
-                                    styles.segmentLabel,
-                                    { color: mode === nextMode ? theme.tintForeground : theme.text },
-                                ]}
-                            >
-                                {nextMode === "list" ? "List" : "Map"}
-                            </ThemedText>
-                        </Pressable>
-                    ))}
-                </View>
+                <SegmentedControl
+                    value={mode}
+                    onChange={setMode}
+                    options={[
+                        { value: "list", label: "List" },
+                        { value: "map", label: "Map" },
+                    ]}
+                />
 
                 {companiesQuery.isPending ? (
                     <ThemedText style={[styles.statusText, { color: theme.textMuted }]}>Loading shops…</ThemedText>
@@ -302,23 +287,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.md,
         fontSize: 16,
         borderWidth: StyleSheet.hairlineWidth,
-    },
-    segmentRow: {
-        flexDirection: "row",
-        gap: Spacing.xs,
-    },
-    segment: {
-        flex: 1,
-        minHeight: 42,
-        borderRadius: Radius.md,
-        alignItems: "center",
-        justifyContent: "center",
-        borderWidth: StyleSheet.hairlineWidth,
-    },
-    segmentLabel: {
-        fontSize: 15,
-        lineHeight: 18,
-        fontWeight: "600",
     },
     statusText: {
         ...Typography.bodySm,

@@ -4,8 +4,10 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { usePublicCompanyBundle } from "@/features/shops/queries";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { getInitials } from "@/lib/formatters";
 import { Radius, Shadows, Spacing, Typography } from "@/theme";
 import { ScreenShell } from "@/ui/screen-shell";
 
@@ -60,41 +62,18 @@ export function ShopDetailsScreen() {
                     </View>
                 ) : null}
 
-                <View
-                    style={[styles.tabRow, Shadows.card, { backgroundColor: theme.surface, borderColor: theme.border }]}
-                >
-                    {(
-                        [
-                            { key: "services", label: "Services" },
-                            { key: "barbers", label: "Barbers" },
-                            { key: "about", label: "About" },
-                        ] as const
-                    ).map((tab) => (
-                        <Pressable
-                            key={tab.key}
-                            onPress={() => setActiveTab(tab.key)}
-                            style={[
-                                styles.tabButton,
-                                activeTab === tab.key
-                                    ? [
-                                          styles.tabButtonActive,
-                                          Shadows.card,
-                                          { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
-                                      ]
-                                    : styles.tabButtonIdle,
-                            ]}
-                        >
-                            <ThemedText
-                                style={[
-                                    styles.tabButtonText,
-                                    { color: activeTab === tab.key ? theme.text : theme.textMuted },
-                                ]}
-                            >
-                                {tab.label}
-                            </ThemedText>
-                        </Pressable>
-                    ))}
-                </View>
+                <SegmentedControl
+                    value={activeTab}
+                    onChange={setActiveTab}
+                    variant="surface"
+                    size="lg"
+                    shadowed
+                    options={[
+                        { value: "services", label: "Services" },
+                        { value: "barbers", label: "Barbers" },
+                        { value: "about", label: "About" },
+                    ]}
+                />
 
                 {activeTab === "about" ? (
                     <View style={styles.aboutStack}>
@@ -150,12 +129,7 @@ export function ShopDetailsScreen() {
                                 >
                                     <View style={[styles.barberAvatar, { backgroundColor: theme.surfaceMuted }]}>
                                         <ThemedText style={styles.barberInitials}>
-                                            {employeeName
-                                                .split(" ")
-                                                .map((part) => part[0] ?? "")
-                                                .join("")
-                                                .slice(0, 2)
-                                                .toUpperCase()}
+                                            {getInitials(employeeName)}
                                         </ThemedText>
                                     </View>
                                     <View style={styles.barberCopy}>
@@ -283,32 +257,6 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         gap: Spacing.md,
-    },
-    tabRow: {
-        flexDirection: "row",
-        gap: Spacing.xs,
-        borderRadius: Radius.xl,
-        borderWidth: StyleSheet.hairlineWidth,
-        padding: 6,
-    },
-    tabButton: {
-        flex: 1,
-        minHeight: 52,
-        borderRadius: Radius.lg,
-        alignItems: "center",
-        justifyContent: "center",
-        paddingHorizontal: Spacing.md,
-    },
-    tabButtonActive: {
-        borderWidth: StyleSheet.hairlineWidth,
-    },
-    tabButtonIdle: {
-        backgroundColor: "transparent",
-    },
-    tabButtonText: {
-        fontSize: 16,
-        lineHeight: 20,
-        fontWeight: "600",
     },
     servicesStack: {
         gap: Spacing.md,

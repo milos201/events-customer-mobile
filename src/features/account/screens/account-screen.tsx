@@ -6,12 +6,13 @@ import type { ComponentProps, ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Switch, View } from "react-native";
 
-import type { AppointmentRecord } from "@/api/types";
 import { ThemedText } from "@/components/themed-text";
+import { isUpcomingAppointment } from "@/features/account/appointment-utils";
 import { useOwnAppointments } from "@/features/account/queries";
 import { AuthGate } from "@/features/auth/components/auth-gate";
 import { useAuthSession } from "@/features/auth/session-provider";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { getInitials } from "@/lib/formatters";
 import { Radius, Shadows, Spacing, Typography } from "@/theme";
 import { ScreenShell } from "@/ui/screen-shell";
 
@@ -25,15 +26,6 @@ type ProfileActionRowProps = {
     tone?: ProfileActionTone;
     trailing?: ReactNode;
 };
-
-function getInitials(value: string) {
-    return value
-        .split(" ")
-        .map((part) => part[0] ?? "")
-        .join("")
-        .slice(0, 2)
-        .toUpperCase();
-}
 
 function getCreatedAt(value: unknown) {
     if (!value || typeof value !== "object") {
@@ -53,14 +45,6 @@ function formatMemberSince(value: string | null) {
         month: "long",
         year: "numeric",
     }).format(new Date(value))}`;
-}
-
-function isUpcomingAppointment(appointment: AppointmentRecord) {
-    if (appointment.status !== "pending" && appointment.status !== "confirmed") {
-        return false;
-    }
-
-    return new Date(appointment.startsAt).getTime() > Date.now();
 }
 
 function StatCard({ value, label }: { value: string; label: string }) {
