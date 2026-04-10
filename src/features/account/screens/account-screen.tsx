@@ -8,8 +8,8 @@ import { Pressable, StyleSheet, Switch, View } from "react-native";
 
 import type { AppointmentRecord } from "@/api/types";
 import { ThemedText } from "@/components/themed-text";
-import { AuthGate } from "@/features/auth/components/auth-gate";
 import { useOwnAppointments } from "@/features/account/queries";
+import { AuthGate } from "@/features/auth/components/auth-gate";
 import { useAuthSession } from "@/features/auth/session-provider";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { Radius, Shadows, Spacing, Typography } from "@/theme";
@@ -63,36 +63,36 @@ function isUpcomingAppointment(appointment: AppointmentRecord) {
     return new Date(appointment.startsAt).getTime() > Date.now();
 }
 
-function StatCard({
-    value,
-    label,
-}: {
-    value: string;
-    label: string;
-}) {
+function StatCard({ value, label }: { value: string; label: string }) {
     const theme = useAppTheme();
 
     return (
-        <View style={[styles.statCard, Shadows.card, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
+        <View
+            style={[
+                styles.statCard,
+                Shadows.card,
+                { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
+            ]}
+        >
             <ThemedText style={styles.statValue}>{value}</ThemedText>
             <ThemedText style={[styles.statLabel, { color: theme.textMuted }]}>{label}</ThemedText>
         </View>
     );
 }
 
-function ProfileSection({
-    title,
-    children,
-}: {
-    title: string;
-    children: ReactNode;
-}) {
+function ProfileSection({ title, children }: { title: string; children: ReactNode }) {
     const theme = useAppTheme();
 
     return (
         <View style={styles.section}>
             <ThemedText style={[styles.sectionTitle, { color: theme.textSubtle }]}>{title}</ThemedText>
-            <View style={[styles.sectionCard, Shadows.card, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
+            <View
+                style={[
+                    styles.sectionCard,
+                    Shadows.card,
+                    { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
+                ]}
+            >
                 {children}
             </View>
         </View>
@@ -120,7 +120,11 @@ function ProfileActionRow({ icon, title, subtitle, onPress, tone = "default", tr
     );
 
     if (onPress) {
-        return <Pressable style={styles.row} onPress={onPress}>{content}</Pressable>;
+        return (
+            <Pressable style={styles.row} onPress={onPress}>
+                {content}
+            </Pressable>
+        );
     }
 
     return <View style={styles.row}>{content}</View>;
@@ -161,9 +165,17 @@ export function AccountScreen() {
 
     return (
         <ScreenShell title="Profile" layout="compact" bottomPadding="xl" contentGap="lg">
-            <View style={[styles.profileCard, Shadows.card, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
+            <View
+                style={[
+                    styles.profileCard,
+                    Shadows.card,
+                    { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
+                ]}
+            >
                 <View style={[styles.avatar, { backgroundColor: theme.surfaceMuted }]}>
-                    <ThemedText style={styles.avatarLabel}>{getInitials(user?.name ?? user?.email ?? "Guest")}</ThemedText>
+                    <ThemedText style={styles.avatarLabel}>
+                        {getInitials(user?.name ?? user?.email ?? "Guest")}
+                    </ThemedText>
                 </View>
                 <View style={styles.profileCopy}>
                     <ThemedText type="defaultSemiBold" style={styles.profileName}>
@@ -175,12 +187,20 @@ export function AccountScreen() {
             </View>
 
             <View style={styles.statsRow}>
-                <StatCard value={appointmentsQuery.isPending || appointmentsQuery.isError ? "—" : String(totalBookings)} label="Total Bookings" />
-                <StatCard value={appointmentsQuery.isPending || appointmentsQuery.isError ? "—" : String(upcomingVisits)} label="Upcoming Visits" />
+                <StatCard
+                    value={appointmentsQuery.isPending || appointmentsQuery.isError ? "—" : String(totalBookings)}
+                    label="Total Bookings"
+                />
+                <StatCard
+                    value={appointmentsQuery.isPending || appointmentsQuery.isError ? "—" : String(upcomingVisits)}
+                    label="Upcoming Visits"
+                />
             </View>
 
             {appointmentsQuery.isError ? (
-                <ThemedText style={[styles.statusText, { color: theme.textMuted }]}>Could not load booking stats.</ThemedText>
+                <ThemedText style={[styles.statusText, { color: theme.textMuted }]}>
+                    Could not load booking stats.
+                </ThemedText>
             ) : null}
 
             <ProfileSection title="Preferences">
@@ -199,11 +219,7 @@ export function AccountScreen() {
                     }
                 />
                 <SectionDivider />
-                <ProfileActionRow
-                    icon="palette"
-                    title="Appearance"
-                    subtitle="Follows your device setting"
-                />
+                <ProfileActionRow icon="palette" title="Appearance" subtitle="Follows your device setting" />
             </ProfileSection>
 
             <ProfileSection title="Support">

@@ -1,5 +1,5 @@
+import { type Href, useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { useLocalSearchParams, usePathname, useRouter, type Href } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -97,9 +97,9 @@ function formatDateChip(value: string) {
                 ? "Today"
                 : value === tomorrowValue
                   ? "Tomorrow"
-                : new Intl.DateTimeFormat("en-US", {
-                      weekday: "short",
-                  }).format(date),
+                  : new Intl.DateTimeFormat("en-US", {
+                        weekday: "short",
+                    }).format(date),
         day: new Intl.DateTimeFormat("en-US", {
             day: "numeric",
         }).format(date),
@@ -161,10 +161,7 @@ function StepProgress({ step, tintColor, trackColor }: { step: BookingStep; tint
                 <View
                     // biome-ignore lint/suspicious/noArrayIndexKey: step indicators are static
                     key={index}
-                    style={[
-                        styles.progressSegment,
-                        { backgroundColor: index < step ? tintColor : trackColor },
-                    ]}
+                    style={[styles.progressSegment, { backgroundColor: index < step ? tintColor : trackColor }]}
                 />
             ))}
         </View>
@@ -190,7 +187,9 @@ function SummaryItem({
             <ThemedText type="defaultSemiBold" style={styles.summaryPrimary}>
                 {primary}
             </ThemedText>
-            {secondary ? <ThemedText style={[styles.summarySecondary, { color: secondaryColor }]}>{secondary}</ThemedText> : null}
+            {secondary ? (
+                <ThemedText style={[styles.summarySecondary, { color: secondaryColor }]}>{secondary}</ThemedText>
+            ) : null}
         </View>
     );
 }
@@ -218,7 +217,7 @@ export function BookingScreen() {
 
     const selectedBarber =
         selectedBarberId && selectedBarberId !== "any"
-            ? employees.find((employee) => employee.userId === selectedBarberId) ?? null
+            ? (employees.find((employee) => employee.userId === selectedBarberId) ?? null)
             : null;
     const selectedService = services.find((service) => service.id === selectedServiceId) ?? null;
     const bookingDays = useMemo(() => getBookingDays(7), []);
@@ -320,9 +319,7 @@ export function BookingScreen() {
             companyId: company.id,
             serviceId: selectedService.id,
             startsAt: selectedStartTime,
-            ...(selectedBarberId === "any"
-                ? { assignAnyEmployee: true as const }
-                : { employeeId: selectedBarberId }),
+            ...(selectedBarberId === "any" ? { assignAnyEmployee: true as const } : { employeeId: selectedBarberId }),
         });
     }
 
@@ -464,7 +461,9 @@ export function BookingScreen() {
                                             </ThemedText>
                                         </View>
                                         <View style={styles.serviceTrailing}>
-                                            <ThemedText type="defaultSemiBold">{formatPrice(service.priceCents)}</ThemedText>
+                                            <ThemedText type="defaultSemiBold">
+                                                {formatPrice(service.priceCents)}
+                                            </ThemedText>
                                             <IconSymbol color={theme.textSubtle} name="chevron.right" size={18} />
                                         </View>
                                     </Pressable>
@@ -556,7 +555,9 @@ export function BookingScreen() {
                                                 style={[
                                                     styles.timeChip,
                                                     {
-                                                        backgroundColor: isSelected ? theme.tint : theme.surfaceElevated,
+                                                        backgroundColor: isSelected
+                                                            ? theme.tint
+                                                            : theme.surfaceElevated,
                                                         borderColor: isSelected ? theme.tint : theme.border,
                                                     },
                                                 ]}
@@ -613,7 +614,11 @@ export function BookingScreen() {
                             <View style={[styles.summaryDivider, { backgroundColor: theme.border }]} />
                             <SummaryItem
                                 label="Date & Time"
-                                primary={selectedStartTime ? formatSummaryDate(selectedStartTime) : formatSummaryDateFromDay(selectedDate)}
+                                primary={
+                                    selectedStartTime
+                                        ? formatSummaryDate(selectedStartTime)
+                                        : formatSummaryDateFromDay(selectedDate)
+                                }
                                 secondary={selectedStartTime ? formatTimeLabel(selectedStartTime) : "Not selected"}
                                 labelColor={theme.textSubtle}
                                 secondaryColor={theme.textMuted}
@@ -649,11 +654,7 @@ export function BookingScreen() {
                         onPress={() => {
                             void handleConfirmPress();
                         }}
-                        style={[
-                            styles.ctaButton,
-                            Shadows.floating,
-                            { backgroundColor: theme.tint },
-                        ]}
+                        style={[styles.ctaButton, Shadows.floating, { backgroundColor: theme.tint }]}
                     >
                         <ThemedText style={[styles.ctaLabel, { color: theme.tintForeground }]}>
                             {createAppointment.isPending

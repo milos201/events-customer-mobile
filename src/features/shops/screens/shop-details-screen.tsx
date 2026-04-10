@@ -26,13 +26,15 @@ export function ShopDetailsScreen() {
 
     return (
         <View style={styles.screen}>
-            <ScreenShell
-                title={null}
-                layout="detail"
-                topInset="none"
-            >
+            <ScreenShell title={null} layout="detail" topInset="none">
                 {company ? (
-                    <View style={[styles.heroCard, Shadows.floating, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
+                    <View
+                        style={[
+                            styles.heroCard,
+                            Shadows.floating,
+                            { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
+                        ]}
+                    >
                         <View style={styles.heroTopRow}>
                             <View style={styles.heroCopy}>
                                 <ThemedText type="defaultSemiBold" style={styles.heroTitle}>
@@ -41,7 +43,8 @@ export function ShopDetailsScreen() {
                                 <View style={styles.addressRow}>
                                     <IconSymbol color={theme.textSubtle} name="mappin.and.ellipse" size={16} />
                                     <ThemedText style={[styles.addressText, { color: theme.textMuted }]}>
-                                        {[company.address, company.city].filter(Boolean).join(", ") || "Location details coming soon"}
+                                        {[company.address, company.city].filter(Boolean).join(", ") ||
+                                            "Location details coming soon"}
                                     </ThemedText>
                                 </View>
                             </View>
@@ -57,19 +60,27 @@ export function ShopDetailsScreen() {
                     </View>
                 ) : null}
 
-                <View style={[styles.tabRow, Shadows.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                    {([
-                        { key: "services", label: "Services" },
-                        { key: "barbers", label: "Barbers" },
-                        { key: "about", label: "About" },
-                    ] as const).map((tab) => (
+                <View
+                    style={[styles.tabRow, Shadows.card, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                >
+                    {(
+                        [
+                            { key: "services", label: "Services" },
+                            { key: "barbers", label: "Barbers" },
+                            { key: "about", label: "About" },
+                        ] as const
+                    ).map((tab) => (
                         <Pressable
                             key={tab.key}
                             onPress={() => setActiveTab(tab.key)}
                             style={[
                                 styles.tabButton,
                                 activeTab === tab.key
-                                    ? [styles.tabButtonActive, Shadows.card, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]
+                                    ? [
+                                          styles.tabButtonActive,
+                                          Shadows.card,
+                                          { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
+                                      ]
                                     : styles.tabButtonIdle,
                             ]}
                         >
@@ -85,79 +96,83 @@ export function ShopDetailsScreen() {
                     ))}
                 </View>
 
-            {activeTab === "about" ? (
-                <View style={styles.aboutStack}>
-                    {companyQuery.isPending ? <ThemedText>Loading shop profile and services…</ThemedText> : null}
+                {activeTab === "about" ? (
+                    <View style={styles.aboutStack}>
+                        {companyQuery.isPending ? <ThemedText>Loading shop profile and services…</ThemedText> : null}
 
-                    {companyQuery.isError ? (
-                        <ThemedText>Could not load shop details.</ThemedText>
-                    ) : null}
+                        {companyQuery.isError ? <ThemedText>Could not load shop details.</ThemedText> : null}
 
-                    {company ? (
-                        <>
-                            <View style={styles.aboutSection}>
-                                <ThemedText style={[styles.aboutLabel, { color: theme.textSubtle }]}>Location</ThemedText>
-                                <View style={styles.aboutRow}>
-                                    <IconSymbol color={theme.tint} name="mappin.and.ellipse" size={16} />
-                                    <ThemedText style={styles.aboutValue}>
-                                        {company.address ?? "Address not set yet"}
+                        {company ? (
+                            <>
+                                <View style={styles.aboutSection}>
+                                    <ThemedText style={[styles.aboutLabel, { color: theme.textSubtle }]}>
+                                        Location
+                                    </ThemedText>
+                                    <View style={styles.aboutRow}>
+                                        <IconSymbol color={theme.tint} name="mappin.and.ellipse" size={16} />
+                                        <ThemedText style={styles.aboutValue}>
+                                            {company.address ?? "Address not set yet"}
+                                        </ThemedText>
+                                    </View>
+                                    <ThemedText style={[styles.aboutSupport, { color: theme.textMuted }]}>
+                                        {company.city && company.country
+                                            ? `${company.city}, ${company.country}`
+                                            : (company.city ?? company.country ?? "City and country not set yet")}
                                     </ThemedText>
                                 </View>
-                                <ThemedText style={[styles.aboutSupport, { color: theme.textMuted }]}>
-                                    {company.city && company.country
-                                        ? `${company.city}, ${company.country}`
-                                        : (company.city ?? company.country ?? "City and country not set yet")}
-                                </ThemedText>
-                            </View>
 
-                            <View style={[styles.aboutDivider, { backgroundColor: theme.border }]} />
+                                <View style={[styles.aboutDivider, { backgroundColor: theme.border }]} />
 
-                            <View style={styles.aboutSection}>
-                                <ThemedText style={[styles.aboutLabel, { color: theme.textSubtle }]}>Timezone</ThemedText>
-                                <ThemedText style={styles.aboutValue}>{company.timezone ?? "Timezone not set yet"}</ThemedText>
-                            </View>
-                        </>
-                    ) : null}
-                </View>
-            ) : null}
-
-            {activeTab === "barbers" ? (
-                <View style={styles.barbersStack}>
-                    {employeeNames?.length ? (
-                        <>
-                            {employeeNames.map((employeeName) => (
-                                <View
-                                    key={employeeName}
-                                    style={[
-                                        styles.barberCard,
-                                        Shadows.card,
-                                        { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
-                                    ]}
-                                >
-                                    <View style={[styles.barberAvatar, { backgroundColor: theme.surfaceMuted }]}>
-                                        <ThemedText style={styles.barberInitials}>
-                                            {employeeName
-                                                .split(" ")
-                                                .map((part) => part[0] ?? "")
-                                                .join("")
-                                                .slice(0, 2)
-                                                .toUpperCase()}
-                                        </ThemedText>
-                                    </View>
-                                    <View style={styles.barberCopy}>
-                                        <ThemedText type="defaultSemiBold">{employeeName}</ThemedText>
-                                        <ThemedText style={[styles.barberMeta, { color: theme.textMuted }]}>
-                                            Available for booking
-                                        </ThemedText>
-                                    </View>
+                                <View style={styles.aboutSection}>
+                                    <ThemedText style={[styles.aboutLabel, { color: theme.textSubtle }]}>
+                                        Timezone
+                                    </ThemedText>
+                                    <ThemedText style={styles.aboutValue}>
+                                        {company.timezone ?? "Timezone not set yet"}
+                                    </ThemedText>
                                 </View>
-                            ))}
-                        </>
-                    ) : (
-                        <ThemedText>No staff available.</ThemedText>
-                    )}
-                </View>
-            ) : null}
+                            </>
+                        ) : null}
+                    </View>
+                ) : null}
+
+                {activeTab === "barbers" ? (
+                    <View style={styles.barbersStack}>
+                        {employeeNames?.length ? (
+                            <>
+                                {employeeNames.map((employeeName) => (
+                                    <View
+                                        key={employeeName}
+                                        style={[
+                                            styles.barberCard,
+                                            Shadows.card,
+                                            { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
+                                        ]}
+                                    >
+                                        <View style={[styles.barberAvatar, { backgroundColor: theme.surfaceMuted }]}>
+                                            <ThemedText style={styles.barberInitials}>
+                                                {employeeName
+                                                    .split(" ")
+                                                    .map((part) => part[0] ?? "")
+                                                    .join("")
+                                                    .slice(0, 2)
+                                                    .toUpperCase()}
+                                            </ThemedText>
+                                        </View>
+                                        <View style={styles.barberCopy}>
+                                            <ThemedText type="defaultSemiBold">{employeeName}</ThemedText>
+                                            <ThemedText style={[styles.barberMeta, { color: theme.textMuted }]}>
+                                                Available for booking
+                                            </ThemedText>
+                                        </View>
+                                    </View>
+                                ))}
+                            </>
+                        ) : (
+                            <ThemedText>No staff available.</ThemedText>
+                        )}
+                    </View>
+                ) : null}
 
                 {activeTab === "services" ? (
                     <View style={styles.servicesStack}>
@@ -217,11 +232,7 @@ export function ShopDetailsScreen() {
                             params: { shopId: resolvedShopId },
                         });
                     }}
-                    style={[
-                        styles.ctaButton,
-                        Shadows.floating,
-                        { backgroundColor: theme.tint },
-                    ]}
+                    style={[styles.ctaButton, Shadows.floating, { backgroundColor: theme.tint }]}
                 >
                     <ThemedText style={[styles.ctaLabel, { color: theme.tintForeground }]}>Book Appointment</ThemedText>
                 </Pressable>

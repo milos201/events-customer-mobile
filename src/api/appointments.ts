@@ -50,7 +50,5 @@ export async function createCompanyAppointment(companyId: number, input: CreateC
                   ...(input.notesCustomer ? { notesCustomer: input.notesCustomer } : {}),
               };
 
-    return await apiPost<AppointmentRecord>(`/companies/${companyId}/appointments`, {
-        body,
-    });
+    return await apiPost<AppointmentRecord>(`/companies/${companyId}/appointments`, { body });
 }

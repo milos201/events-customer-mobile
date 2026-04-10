@@ -1,5 +1,5 @@
+import { type Href, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -16,7 +16,9 @@ export function SignInScreen() {
     const { returnTo, mode } = useLocalSearchParams<{ returnTo?: string; mode?: string }>();
     const { status, signIn, createAccount } = useAuthSession();
     const safeReturnTo: Href = returnTo && returnTo.startsWith("/") ? (returnTo as Href) : ("/" as Href);
-    const [authMode, setAuthMode] = useState<"sign-in" | "create-account">(mode === "create-account" ? "create-account" : "sign-in");
+    const [authMode, setAuthMode] = useState<"sign-in" | "create-account">(
+        mode === "create-account" ? "create-account" : "sign-in",
+    );
     const isCreateAccount = authMode === "create-account";
     const theme = useAppTheme();
     const [name, setName] = useState("");
@@ -91,7 +93,9 @@ export function SignInScreen() {
                                 {isCreateAccount ? "Create account" : "Sign in"}
                             </ThemedText>
                             <ThemedText style={[styles.description, { color: theme.textMuted }]}>
-                                {isCreateAccount ? "Create an account and continue where you left off." : "Continue to your bookings and appointments."}
+                                {isCreateAccount
+                                    ? "Create an account and continue where you left off."
+                                    : "Continue to your bookings and appointments."}
                             </ThemedText>
                         </View>
 
@@ -101,7 +105,8 @@ export function SignInScreen() {
                                 { key: "create-account", label: "Create account" },
                             ].map((option) => {
                                 const selected =
-                                    (option.key === "create-account" && isCreateAccount) || (option.key === "sign-in" && !isCreateAccount);
+                                    (option.key === "create-account" && isCreateAccount) ||
+                                    (option.key === "sign-in" && !isCreateAccount);
 
                                 return (
                                     <Pressable
@@ -118,7 +123,12 @@ export function SignInScreen() {
                                             },
                                         ]}
                                     >
-                                        <ThemedText style={[styles.segmentText, { color: selected ? theme.tintForeground : theme.text }]}>
+                                        <ThemedText
+                                            style={[
+                                                styles.segmentText,
+                                                { color: selected ? theme.tintForeground : theme.text },
+                                            ]}
+                                        >
                                             {option.label}
                                         </ThemedText>
                                     </Pressable>
@@ -134,7 +144,14 @@ export function SignInScreen() {
                                     onChangeText={setName}
                                     placeholder="Your name"
                                     placeholderTextColor={theme.textSubtle}
-                                    style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
+                                    style={[
+                                        styles.input,
+                                        {
+                                            backgroundColor: theme.surface,
+                                            borderColor: theme.border,
+                                            color: theme.text,
+                                        },
+                                    ]}
                                     value={name}
                                 />
                             ) : null}
@@ -145,7 +162,10 @@ export function SignInScreen() {
                                 onChangeText={setEmail}
                                 placeholder="customer@example.com"
                                 placeholderTextColor={theme.textSubtle}
-                                style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
+                                style={[
+                                    styles.input,
+                                    { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text },
+                                ]}
                                 value={email}
                             />
                             <TextInput
@@ -155,7 +175,10 @@ export function SignInScreen() {
                                 placeholder="Password"
                                 placeholderTextColor={theme.textSubtle}
                                 secureTextEntry
-                                style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
+                                style={[
+                                    styles.input,
+                                    { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text },
+                                ]}
                                 value={password}
                             />
                         </View>
@@ -182,7 +205,11 @@ export function SignInScreen() {
                                 }
 
                                 if (!trimmedEmail || !password) {
-                                    setErrorMessage(isCreateAccount ? "Name, email, and password are required." : "Email and password are required.");
+                                    setErrorMessage(
+                                        isCreateAccount
+                                            ? "Name, email, and password are required."
+                                            : "Email and password are required.",
+                                    );
                                     return;
                                 }
 

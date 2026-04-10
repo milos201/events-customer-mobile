@@ -1,4 +1,4 @@
-import { Link, type Href } from "expo-router";
+import { type Href, Link } from "expo-router";
 import { Pressable, StyleSheet } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";

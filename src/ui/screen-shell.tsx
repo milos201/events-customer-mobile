@@ -125,7 +125,9 @@ export function ScreenShell({
             >
                 {showHero ? (
                     <View style={styles.hero}>
-                        {eyebrow ? <ThemedText style={[styles.eyebrow, { color: theme.textSubtle }]}>{eyebrow}</ThemedText> : null}
+                        {eyebrow ? (
+                            <ThemedText style={[styles.eyebrow, { color: theme.textSubtle }]}>{eyebrow}</ThemedText>
+                        ) : null}
                         {typeof title === "string" ? (
                             <ThemedText type="title" style={styles.title}>
                                 {title}
@@ -133,7 +135,11 @@ export function ScreenShell({
                         ) : (
                             title
                         )}
-                        {description ? <ThemedText style={[styles.description, { color: theme.textMuted }]}>{description}</ThemedText> : null}
+                        {description ? (
+                            <ThemedText style={[styles.description, { color: theme.textMuted }]}>
+                                {description}
+                            </ThemedText>
+                        ) : null}
                     </View>
                 ) : null}
                 <View style={[styles.stack, { gap: resolvedContentGap }]}>{children}</View>
@@ -146,7 +152,11 @@ export function SectionCard({ title, children }: SectionCardProps) {
     const theme = useAppTheme();
 
     return (
-        <ThemedView style={[styles.card, Shadows.card, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]} lightColor={theme.surfaceElevated} darkColor={theme.surfaceElevated}>
+        <ThemedView
+            style={[styles.card, Shadows.card, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
+            lightColor={theme.surfaceElevated}
+            darkColor={theme.surfaceElevated}
+        >
             <ThemedText type="subtitle" style={[styles.cardTitle, { color: theme.textMuted }]}>
                 {title}
             </ThemedText>

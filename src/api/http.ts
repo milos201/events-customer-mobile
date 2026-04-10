@@ -1,5 +1,5 @@
-import { appConfig } from "@/lib/config";
 import { authClient } from "@/lib/auth-client";
+import { appConfig } from "@/lib/config";
 
 type QueryValue = string | number | boolean | null | undefined;
 type JsonPrimitive = string | number | boolean | null;
@@ -93,7 +93,10 @@ async function parseResponseBody(response: Response) {
 
 function createTimeoutSignal(signal: AbortSignal | undefined, timeoutMs: number) {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(new Error(`Request timed out after ${timeoutMs}ms`)), timeoutMs);
+    const timeoutId = setTimeout(
+        () => controller.abort(new Error(`Request timed out after ${timeoutMs}ms`)),
+        timeoutMs,
+    );
 
     const abortFromParent = () => controller.abort(signal?.reason);
 

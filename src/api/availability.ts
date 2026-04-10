@@ -16,8 +16,5 @@ type AvailabilityInput =
       };
 
 export async function getCompanyAvailability(companyId: number, input: AvailabilityInput, signal?: AbortSignal) {
-    return await apiGet<AvailabilityResult>(`/companies/${companyId}/availability`, {
-        query: input,
-        signal,
-    });
+    return await apiGet<AvailabilityResult>(`/companies/${companyId}/availability`, { query: input, signal });
 }

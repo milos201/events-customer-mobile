@@ -11,10 +11,7 @@ type ListPublicCompaniesInput = {
 };
 
 export async function listPublicCompanies(input: ListPublicCompaniesInput = {}, signal?: AbortSignal) {
-    return await apiGet<PaginatedResult<PublicCompany>>("/companies", {
-        query: input,
-        signal,
-    });
+    return await apiGet<PaginatedResult<PublicCompany>>("/companies", { query: input, signal });
 }
 
 export async function getPublicCompanyBySlug(slug: string, signal?: AbortSignal) {
@@ -29,10 +26,7 @@ export async function getPublicCompanyBundleBySlug(slug: string, signal?: AbortS
     const publicCompany = await getPublicCompanyBySlug(slug, signal);
     const [company, services] = await Promise.all([
         getCompanyDetails(publicCompany.id, signal),
-        apiGet<PaginatedResult<Service>>(`/companies/${publicCompany.id}/services`, {
-            query: { limit: 50 },
-            signal,
-        }),
+        apiGet<PaginatedResult<Service>>(`/companies/${publicCompany.id}/services`, { query: { limit: 50 }, signal }),
     ]);
 
     return {

@@ -19,10 +19,12 @@ export function AuthGate({ title, returnTo }: AuthGateProps) {
                         label="Sign in"
                     />
                     <ActionLink
-                        href={{
-                            pathname: "/sign-in",
-                            params: { returnTo: String(returnTo), mode: "create-account" },
-                        } as unknown as Href}
+                        href={
+                            {
+                                pathname: "/sign-in",
+                                params: { returnTo: String(returnTo), mode: "create-account" },
+                            } as unknown as Href
+                        }
                         label="Create account"
                         variant="secondary"
                     />

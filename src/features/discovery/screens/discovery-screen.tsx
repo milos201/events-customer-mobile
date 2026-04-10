@@ -81,13 +81,7 @@ function isCompanyInRegion(company: PublicCompany & { latitude: number; longitud
     );
 }
 
-function CompanyCard({
-    company,
-    theme,
-}: {
-    company: PublicCompany;
-    theme: ReturnType<typeof useAppTheme>;
-}) {
+function CompanyCard({ company, theme }: { company: PublicCompany; theme: ReturnType<typeof useAppTheme> }) {
     const meta = [company.city, company.address].filter(Boolean).join(" · ");
     const distance = formatDistance(company.distanceMeters);
 
@@ -112,7 +106,9 @@ function CompanyCard({
                         </View>
                         <View style={styles.cardAside}>
                             {distance ? (
-                                <ThemedText style={[styles.distanceText, { color: theme.textMuted }]}>{distance}</ThemedText>
+                                <ThemedText style={[styles.distanceText, { color: theme.textMuted }]}>
+                                    {distance}
+                                </ThemedText>
                             ) : null}
                             <ThemedText style={[styles.arrow, { color: theme.textSubtle }]}>›</ThemedText>
                         </View>
@@ -194,16 +190,27 @@ export function DiscoveryScreen() {
                                 },
                             ]}
                         >
-                            <ThemedText style={[styles.segmentLabel, { color: mode === nextMode ? theme.tintForeground : theme.text }]}>
+                            <ThemedText
+                                style={[
+                                    styles.segmentLabel,
+                                    { color: mode === nextMode ? theme.tintForeground : theme.text },
+                                ]}
+                            >
                                 {nextMode === "list" ? "List" : "Map"}
                             </ThemedText>
                         </Pressable>
                     ))}
                 </View>
 
-                {companiesQuery.isPending ? <ThemedText style={[styles.statusText, { color: theme.textMuted }]}>Loading shops…</ThemedText> : null}
+                {companiesQuery.isPending ? (
+                    <ThemedText style={[styles.statusText, { color: theme.textMuted }]}>Loading shops…</ThemedText>
+                ) : null}
 
-                {companiesQuery.isError ? <ThemedText style={[styles.statusText, { color: theme.textMuted }]}>Could not load shops.</ThemedText> : null}
+                {companiesQuery.isError ? (
+                    <ThemedText style={[styles.statusText, { color: theme.textMuted }]}>
+                        Could not load shops.
+                    </ThemedText>
+                ) : null}
 
                 {!companiesQuery.isPending && !companiesQuery.isError && visibleCompanies.length === 0 ? (
                     <ThemedView
@@ -214,7 +221,9 @@ export function DiscoveryScreen() {
                         ]}
                     >
                         <ThemedText type="defaultSemiBold">No shops found</ThemedText>
-                        <ThemedText style={[styles.emptyText, { color: theme.textMuted }]}>Try a different search.</ThemedText>
+                        <ThemedText style={[styles.emptyText, { color: theme.textMuted }]}>
+                            Try a different search.
+                        </ThemedText>
                     </ThemedView>
                 ) : null}
 
@@ -222,16 +231,18 @@ export function DiscoveryScreen() {
                     mode === "list" || Platform.OS === "web" ? (
                         <View style={styles.stack}>
                             {visibleCompanies.map((company) => (
-                                <CompanyCard
-                                    key={company.id}
-                                    company={company}
-                                    theme={theme}
-                                />
+                                <CompanyCard key={company.id} company={company} theme={theme} />
                             ))}
                         </View>
                     ) : (
                         <View style={styles.stack}>
-                            <View style={[styles.mapCard, Shadows.card, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
+                            <View
+                                style={[
+                                    styles.mapCard,
+                                    Shadows.card,
+                                    { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
+                                ]}
+                            >
                                 <MapView
                                     initialRegion={initialRegion}
                                     style={[styles.map, { backgroundColor: theme.surfaceMuted }]}
@@ -257,11 +268,7 @@ export function DiscoveryScreen() {
                             {visibleMapCompanies.length > 0 ? (
                                 <View style={styles.stack}>
                                     {visibleMapCompanies.map((company) => (
-                                        <CompanyCard
-                                            key={company.id}
-                                            company={company}
-                                            theme={theme}
-                                        />
+                                        <CompanyCard key={company.id} company={company} theme={theme} />
                                     ))}
                                 </View>
                             ) : (

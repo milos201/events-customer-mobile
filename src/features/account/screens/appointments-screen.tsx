@@ -115,15 +115,7 @@ function getStatusTone(status: AppointmentRecord["status"], theme: ReturnType<ty
     }
 }
 
-function CountPill({
-    count,
-    backgroundColor,
-    color,
-}: {
-    count: number;
-    backgroundColor: string;
-    color: string;
-}) {
+function CountPill({ count, backgroundColor, color }: { count: number; backgroundColor: string; color: string }) {
     return (
         <View style={[styles.countPill, { backgroundColor }]}>
             <ThemedText style={[styles.countPillText, { color }]}>{count}</ThemedText>
@@ -149,11 +141,7 @@ function AppointmentCard({
 
     return (
         <View
-            style={[
-                styles.card,
-                Shadows.card,
-                { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
-            ]}
+            style={[styles.card, Shadows.card, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
         >
             <View style={styles.cardHeader}>
                 <View style={styles.cardHeaderCopy}>
@@ -234,10 +222,7 @@ export function AppointmentsScreen() {
     const [activeTab, setActiveTab] = useState<AppointmentsTab>("upcoming");
     const appointments = appointmentsQuery.data?.results ?? [];
 
-    const upcomingAppointments = useMemo(
-        () => appointments.filter(isUpcomingAppointment),
-        [appointments],
-    );
+    const upcomingAppointments = useMemo(() => appointments.filter(isUpcomingAppointment), [appointments]);
     const pastAppointments = useMemo(
         () => appointments.filter((appointment) => !isUpcomingAppointment(appointment)),
         [appointments],
@@ -265,11 +250,20 @@ export function AppointmentsScreen() {
                     style={[
                         styles.tabButton,
                         activeTab === "upcoming"
-                            ? [styles.tabButtonActive, Shadows.card, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]
+                            ? [
+                                  styles.tabButtonActive,
+                                  Shadows.card,
+                                  { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
+                              ]
                             : styles.tabButtonIdle,
                     ]}
                 >
-                    <ThemedText style={[styles.tabButtonText, { color: activeTab === "upcoming" ? theme.text : theme.textMuted }]}>
+                    <ThemedText
+                        style={[
+                            styles.tabButtonText,
+                            { color: activeTab === "upcoming" ? theme.text : theme.textMuted },
+                        ]}
+                    >
                         Upcoming
                     </ThemedText>
                     {upcomingAppointments.length ? (
@@ -286,11 +280,17 @@ export function AppointmentsScreen() {
                     style={[
                         styles.tabButton,
                         activeTab === "past"
-                            ? [styles.tabButtonActive, Shadows.card, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]
+                            ? [
+                                  styles.tabButtonActive,
+                                  Shadows.card,
+                                  { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
+                              ]
                             : styles.tabButtonIdle,
                     ]}
                 >
-                    <ThemedText style={[styles.tabButtonText, { color: activeTab === "past" ? theme.text : theme.textMuted }]}>
+                    <ThemedText
+                        style={[styles.tabButtonText, { color: activeTab === "past" ? theme.text : theme.textMuted }]}
+                    >
                         Past
                     </ThemedText>
                 </Pressable>
@@ -323,7 +323,10 @@ export function AppointmentsScreen() {
                 <ThemedText style={{ color: theme.textMuted }}>No bookings yet.</ThemedText>
             ) : null}
 
-            {!appointmentsQuery.isPending && !appointmentsQuery.isError && appointments.length > 0 && activeAppointments.length === 0 ? (
+            {!appointmentsQuery.isPending &&
+            !appointmentsQuery.isError &&
+            appointments.length > 0 &&
+            activeAppointments.length === 0 ? (
                 <ThemedText style={{ color: theme.textMuted }}>
                     {activeTab === "upcoming" ? "No upcoming bookings." : "No past bookings."}
                 </ThemedText>
