@@ -24,7 +24,7 @@ export function AccountScreen() {
     }
 
     return (
-        <ScreenShell title="Profile" showHero={false}>
+        <ScreenShell title="Profile" showHero={false} layout="compact">
             <View style={[styles.profileCard, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
                 <View style={[styles.avatar, { backgroundColor: theme.surfaceMuted }]}>
                     <ThemedText style={styles.avatarLabel}>

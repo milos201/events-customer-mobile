@@ -9,12 +9,22 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { Fonts, Radius, Shadows, Spacing, Typography } from "@/theme";
 
+type ScreenShellLayout = "default" | "detail" | "compact";
+type ScreenShellInsetMode = "safe" | "none";
+type ScreenShellSpacing = keyof typeof Spacing;
+
 type ScreenShellProps = PropsWithChildren<{
     eyebrow?: string;
     title: ReactNode;
     description?: string;
     showHero?: boolean;
-    includeTopInset?: boolean;
+    layout?: ScreenShellLayout;
+    topInset?: ScreenShellInsetMode;
+    bottomInset?: ScreenShellInsetMode;
+    horizontalPadding?: ScreenShellSpacing;
+    topPadding?: ScreenShellSpacing;
+    bottomPadding?: ScreenShellSpacing;
+    contentGap?: ScreenShellSpacing;
 }>;
 
 type SectionCardProps = PropsWithChildren<{
@@ -47,21 +57,72 @@ type ActionButtonProps = {
     trailing?: ReactNode;
 };
 
+const SCREEN_SHELL_LAYOUTS: Record<
+    ScreenShellLayout,
+    {
+        horizontalPadding: ScreenShellSpacing;
+        topPadding: ScreenShellSpacing;
+        bottomPadding: ScreenShellSpacing;
+        contentGap: ScreenShellSpacing;
+    }
+> = {
+    default: {
+        horizontalPadding: "md",
+        topPadding: "xs",
+        bottomPadding: "xl",
+        contentGap: "lg",
+    },
+    detail: {
+        horizontalPadding: "md",
+        topPadding: "xs",
+        bottomPadding: "xl",
+        contentGap: "md",
+    },
+    compact: {
+        horizontalPadding: "md",
+        topPadding: "xs",
+        bottomPadding: "lg",
+        contentGap: "md",
+    },
+};
+
 export function ScreenShell({
     eyebrow,
     title,
     description,
     children,
     showHero = true,
-    includeTopInset = true,
+    layout = "default",
+    topInset = "safe",
+    bottomInset = "safe",
+    horizontalPadding,
+    topPadding,
+    bottomPadding,
+    contentGap,
 }: ScreenShellProps) {
     const insets = useSafeAreaInsets();
     const theme = useAppTheme();
-    const contentPaddingTop = showHero ? (includeTopInset ? insets.top + 8 : 8) : 8;
+    const layoutConfig = SCREEN_SHELL_LAYOUTS[layout];
+    const resolvedHorizontalPadding = Spacing[horizontalPadding ?? layoutConfig.horizontalPadding];
+    const resolvedTopPadding = Spacing[topPadding ?? layoutConfig.topPadding];
+    const resolvedBottomPadding = Spacing[bottomPadding ?? layoutConfig.bottomPadding];
+    const resolvedContentGap = Spacing[contentGap ?? layoutConfig.contentGap];
+    const contentPaddingTop = (topInset === "safe" ? insets.top : 0) + resolvedTopPadding;
+    const contentPaddingBottom = (bottomInset === "safe" ? insets.bottom : 0) + resolvedBottomPadding;
 
     return (
         <ThemedView style={[styles.screen, { backgroundColor: theme.backgroundCanvas }]}>
-            <ScrollView contentContainerStyle={[styles.content, { paddingTop: contentPaddingTop, paddingBottom: insets.bottom + 24 }]}>
+            <ScrollView
+                contentContainerStyle={[
+                    styles.content,
+                    {
+                        paddingTop: contentPaddingTop,
+                        paddingBottom: contentPaddingBottom,
+                        paddingHorizontal: resolvedHorizontalPadding,
+                        gap: resolvedContentGap,
+                    },
+                ]}
+            >
                 {showHero ? (
                     <View style={styles.hero}>
                         {eyebrow ? <ThemedText style={[styles.eyebrow, { color: theme.textSubtle }]}>{eyebrow}</ThemedText> : null}
@@ -75,7 +136,7 @@ export function ScreenShell({
                         {description ? <ThemedText style={[styles.description, { color: theme.textMuted }]}>{description}</ThemedText> : null}
                     </View>
                 ) : null}
-                <View style={styles.stack}>{children}</View>
+                <View style={[styles.stack, { gap: resolvedContentGap }]}>{children}</View>
             </ScrollView>
         </ThemedView>
     );
@@ -209,10 +270,7 @@ const styles = StyleSheet.create({
     screen: {
         flex: 1,
     },
-    content: {
-        paddingHorizontal: Spacing.md,
-        gap: Spacing.lg,
-    },
+    content: {},
     hero: {
         gap: Spacing.xs,
         paddingBottom: Spacing.xs,
@@ -228,9 +286,7 @@ const styles = StyleSheet.create({
         ...Typography.bodySm,
         fontFamily: Fonts.sans,
     },
-    stack: {
-        gap: Spacing.md,
-    },
+    stack: {},
     stackSm: {
         gap: Spacing.sm,
     },

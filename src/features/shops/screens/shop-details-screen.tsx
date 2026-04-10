@@ -28,7 +28,8 @@ export function ShopDetailsScreen() {
         <View style={styles.screen}>
             <ScreenShell
                 title={null}
-                includeTopInset={false}
+                layout="detail"
+                topInset="none"
             >
                 {company ? (
                     <View style={[styles.heroCard, Shadows.floating, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>

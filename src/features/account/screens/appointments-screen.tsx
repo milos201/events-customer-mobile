@@ -258,7 +258,7 @@ export function AppointmentsScreen() {
     }
 
     return (
-        <ScreenShell title="My Bookings" description="Manage your appointments">
+        <ScreenShell title="My Bookings" description="Manage your appointments" layout="compact">
             <View style={[styles.tabRow, Shadows.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                 <Pressable
                     onPress={() => setActiveTab("upcoming")}
