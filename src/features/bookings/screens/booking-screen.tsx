@@ -254,7 +254,8 @@ export function BookingScreen() {
         );
 
         const timeoutId = setTimeout(() => {
-            router.replace("/appointments" as Href);
+            router.dismissAll();
+            router.navigate("/appointments" as Href);
         }, 900);
 
         return () => clearTimeout(timeoutId);

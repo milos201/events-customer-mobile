@@ -21,13 +21,17 @@ jest.mock("@/features/shops/queries", () => ({
 const mockBack = jest.fn();
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
+const mockNavigate = jest.fn();
+const mockDismissAll = jest.fn();
 
 jest.mock("expo-router", () => ({
     useRouter: () => ({
         canGoBack: () => false,
         back: mockBack,
         push: mockPush,
+        navigate: mockNavigate,
         replace: mockReplace,
+        dismissAll: mockDismissAll,
     }),
     usePathname: () => "/booking/shop-1",
     useLocalSearchParams: () => ({ shopId: "shop-1" }),
