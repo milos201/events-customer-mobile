@@ -124,24 +124,6 @@ export function ShopDetailsScreen() {
                 <View style={styles.barbersStack}>
                     {employeeNames?.length ? (
                         <>
-                            <View
-                                style={[
-                                    styles.barberCard,
-                                    Shadows.card,
-                                    { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
-                                ]}
-                            >
-                                <View style={styles.barberAvatar}>
-                                    <IconSymbol color={theme.tint} name="person.fill" size={18} />
-                                </View>
-                                <View style={styles.barberCopy}>
-                                    <ThemedText type="defaultSemiBold">Any available barber</ThemedText>
-                                    <ThemedText style={[styles.barberMeta, { color: theme.textMuted }]}>
-                                        First available team member
-                                    </ThemedText>
-                                </View>
-                            </View>
-
                             {employeeNames.map((employeeName) => (
                                 <View
                                     key={employeeName}
