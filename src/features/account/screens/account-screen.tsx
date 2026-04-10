@@ -145,7 +145,8 @@ export function AccountScreen() {
     const displayName = user?.name?.trim() || "Customer";
     const displayEmail = user?.email ?? "No email available";
     const memberSince = formatMemberSince(getCreatedAt(user) ?? getCreatedAt(session));
-    const appointments = appointmentsQuery.data?.results ?? [];
+    const appointmentResults = appointmentsQuery.data?.results;
+    const appointments = useMemo(() => appointmentResults ?? [], [appointmentResults]);
     const versionLabel = Constants.expoConfig?.version ?? "1.0.0";
 
     const { totalBookings, upcomingVisits } = useMemo(() => {

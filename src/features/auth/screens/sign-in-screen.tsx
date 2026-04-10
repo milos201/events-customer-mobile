@@ -15,7 +15,7 @@ export function SignInScreen() {
     const insets = useSafeAreaInsets();
     const { returnTo, mode } = useLocalSearchParams<{ returnTo?: string; mode?: string }>();
     const { status, signIn, createAccount } = useAuthSession();
-    const safeReturnTo: Href = returnTo && returnTo.startsWith("/") ? (returnTo as Href) : ("/" as Href);
+    const safeReturnTo: Href = returnTo?.startsWith("/") ? (returnTo as Href) : ("/" as Href);
     const [authMode, setAuthMode] = useState<"sign-in" | "create-account">(
         mode === "create-account" ? "create-account" : "sign-in",
     );

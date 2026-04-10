@@ -7,7 +7,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { usePublicCompanyBundle } from "@/features/shops/queries";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { Radius, Shadows, Spacing, Typography } from "@/theme";
-import { BulletList, ScreenShell, SectionCard } from "@/ui/screen-shell";
+import { ScreenShell } from "@/ui/screen-shell";
 
 type ShopTab = "services" | "barbers" | "about";
 
@@ -139,35 +139,33 @@ export function ShopDetailsScreen() {
                 {activeTab === "barbers" ? (
                     <View style={styles.barbersStack}>
                         {employeeNames?.length ? (
-                            <>
-                                {employeeNames.map((employeeName) => (
-                                    <View
-                                        key={employeeName}
-                                        style={[
-                                            styles.barberCard,
-                                            Shadows.card,
-                                            { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
-                                        ]}
-                                    >
-                                        <View style={[styles.barberAvatar, { backgroundColor: theme.surfaceMuted }]}>
-                                            <ThemedText style={styles.barberInitials}>
-                                                {employeeName
-                                                    .split(" ")
-                                                    .map((part) => part[0] ?? "")
-                                                    .join("")
-                                                    .slice(0, 2)
-                                                    .toUpperCase()}
-                                            </ThemedText>
-                                        </View>
-                                        <View style={styles.barberCopy}>
-                                            <ThemedText type="defaultSemiBold">{employeeName}</ThemedText>
-                                            <ThemedText style={[styles.barberMeta, { color: theme.textMuted }]}>
-                                                Available for booking
-                                            </ThemedText>
-                                        </View>
+                            employeeNames.map((employeeName) => (
+                                <View
+                                    key={employeeName}
+                                    style={[
+                                        styles.barberCard,
+                                        Shadows.card,
+                                        { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
+                                    ]}
+                                >
+                                    <View style={[styles.barberAvatar, { backgroundColor: theme.surfaceMuted }]}>
+                                        <ThemedText style={styles.barberInitials}>
+                                            {employeeName
+                                                .split(" ")
+                                                .map((part) => part[0] ?? "")
+                                                .join("")
+                                                .slice(0, 2)
+                                                .toUpperCase()}
+                                        </ThemedText>
                                     </View>
-                                ))}
-                            </>
+                                    <View style={styles.barberCopy}>
+                                        <ThemedText type="defaultSemiBold">{employeeName}</ThemedText>
+                                        <ThemedText style={[styles.barberMeta, { color: theme.textMuted }]}>
+                                            Available for booking
+                                        </ThemedText>
+                                    </View>
+                                </View>
+                            ))
                         ) : (
                             <ThemedText>No staff available.</ThemedText>
                         )}
@@ -177,36 +175,34 @@ export function ShopDetailsScreen() {
                 {activeTab === "services" ? (
                     <View style={styles.servicesStack}>
                         {services.length ? (
-                            <>
-                                {services.map((service) => (
-                                    <Pressable
-                                        key={service.id}
-                                        onPress={() => {
-                                            router.push({
-                                                pathname: "/booking/[shopId]",
-                                                params: { shopId: resolvedShopId, serviceId: String(service.id) },
-                                            });
-                                        }}
-                                        style={[
-                                            styles.serviceCard,
-                                            Shadows.card,
-                                            { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
-                                        ]}
-                                    >
-                                        <View style={styles.serviceCopy}>
-                                            <ThemedText type="defaultSemiBold" style={styles.serviceTitle}>
-                                                {service.name}
-                                            </ThemedText>
-                                            <ThemedText style={[styles.serviceMeta, { color: theme.textMuted }]}>
-                                                {service.durationMinutes} min
-                                            </ThemedText>
-                                        </View>
-                                        <ThemedText style={[styles.servicePrice, { color: theme.text }]}>
-                                            ${(service.priceCents / 100).toFixed(0)}
+                            services.map((service) => (
+                                <Pressable
+                                    key={service.id}
+                                    onPress={() => {
+                                        router.push({
+                                            pathname: "/booking/[shopId]",
+                                            params: { shopId: resolvedShopId, serviceId: String(service.id) },
+                                        });
+                                    }}
+                                    style={[
+                                        styles.serviceCard,
+                                        Shadows.card,
+                                        { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
+                                    ]}
+                                >
+                                    <View style={styles.serviceCopy}>
+                                        <ThemedText type="defaultSemiBold" style={styles.serviceTitle}>
+                                            {service.name}
                                         </ThemedText>
-                                    </Pressable>
-                                ))}
-                            </>
+                                        <ThemedText style={[styles.serviceMeta, { color: theme.textMuted }]}>
+                                            {service.durationMinutes} min
+                                        </ThemedText>
+                                    </View>
+                                    <ThemedText style={[styles.servicePrice, { color: theme.text }]}>
+                                        ${(service.priceCents / 100).toFixed(0)}
+                                    </ThemedText>
+                                </Pressable>
+                            ))
                         ) : (
                             <ThemedText>No services available.</ThemedText>
                         )}

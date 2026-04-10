@@ -220,7 +220,8 @@ export function AppointmentsScreen() {
     const appointmentsQuery = useOwnAppointments(status === "authenticated");
     const cancelAppointment = useCancelOwnAppointment();
     const [activeTab, setActiveTab] = useState<AppointmentsTab>("upcoming");
-    const appointments = appointmentsQuery.data?.results ?? [];
+    const appointmentResults = appointmentsQuery.data?.results;
+    const appointments = useMemo(() => appointmentResults ?? [], [appointmentResults]);
 
     const upcomingAppointments = useMemo(() => appointments.filter(isUpcomingAppointment), [appointments]);
     const pastAppointments = useMemo(

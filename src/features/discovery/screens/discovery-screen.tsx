@@ -33,7 +33,7 @@ function getMapCompanies(companies: PublicCompany[]) {
     );
 }
 
-function getInitialRegion(companies: Array<PublicCompany & { latitude: number; longitude: number }>): Region {
+function getInitialRegion(companies: (PublicCompany & { latitude: number; longitude: number })[]): Region {
     if (companies.length === 0) {
         return {
             latitude: 44.8176,
