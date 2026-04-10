@@ -13,6 +13,7 @@ export default function DiscoverLayout() {
                 name="index"
                 options={{
                     title: "Discover",
+                    headerShown: false,
                 }}
             />
             <Stack.Screen

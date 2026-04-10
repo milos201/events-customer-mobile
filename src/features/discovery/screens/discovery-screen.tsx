@@ -6,8 +6,10 @@ import MapView, { Marker, type Region } from "react-native-maps";
 import type { PublicCompany } from "@/api/types";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import { usePublicCompanies } from "@/features/discovery/queries";
-import { useThemeColor } from "@/hooks/use-theme-color";
+import { useAppTheme } from "@/hooks/use-app-theme";
+import { Radius, Shadows, Spacing, Typography } from "@/theme";
 import { ScreenShell } from "@/ui/screen-shell";
 
 type DiscoveryMode = "list" | "map";
@@ -81,14 +83,10 @@ function isCompanyInRegion(company: PublicCompany & { latitude: number; longitud
 
 function CompanyCard({
     company,
-    mutedColor,
-    cardBackgroundColor,
-    borderColor,
+    theme,
 }: {
     company: PublicCompany;
-    mutedColor: string;
-    cardBackgroundColor: string;
-    borderColor: string;
+    theme: ReturnType<typeof useAppTheme>;
 }) {
     const meta = [company.city, company.address].filter(Boolean).join(" · ");
     const distance = formatDistance(company.distanceMeters);
@@ -99,24 +97,25 @@ function CompanyCard({
                 <ThemedView
                     style={[
                         styles.companyCard,
-                        {
-                            backgroundColor: cardBackgroundColor,
-                            borderColor,
-                        },
+                        Shadows.card,
+                        { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
                     ]}
                 >
                     <View style={styles.companyHeader}>
                         <View style={styles.companyHeaderText}>
                             <ThemedText type="defaultSemiBold">{company.name}</ThemedText>
                             {meta ? (
-                                <ThemedText style={[styles.metaText, { color: mutedColor }]} numberOfLines={2}>
+                                <ThemedText style={[styles.metaText, { color: theme.textMuted }]} numberOfLines={2}>
                                     {meta}
                                 </ThemedText>
                             ) : null}
                         </View>
-                        {distance ? (
-                            <ThemedText style={[styles.distanceText, { color: mutedColor }]}>{distance}</ThemedText>
-                        ) : null}
+                        <View style={styles.cardAside}>
+                            {distance ? (
+                                <ThemedText style={[styles.distanceText, { color: theme.textMuted }]}>{distance}</ThemedText>
+                            ) : null}
+                            <ThemedText style={[styles.arrow, { color: theme.textSubtle }]}>›</ThemedText>
+                        </View>
                     </View>
                 </ThemedView>
             </Pressable>
@@ -126,21 +125,13 @@ function CompanyCard({
 
 export function DiscoveryScreen() {
     const router = useRouter();
+    const theme = useAppTheme();
     const [mode, setMode] = useState<DiscoveryMode>("list");
     const [query, setQuery] = useState("");
     const deferredQuery = useDeferredValue(query.trim());
     const companiesQuery = usePublicCompanies({
         query: deferredQuery || undefined,
     });
-
-    const textColor = useThemeColor({}, "text");
-    const mutedColor = useThemeColor({ light: "#6B7280", dark: "#8E8E93" }, "icon");
-    const borderColor = useThemeColor({ light: "rgba(60, 60, 67, 0.18)", dark: "rgba(84, 84, 88, 0.65)" }, "icon");
-    const inputBackgroundColor = useThemeColor({ light: "#F2F2F7", dark: "#1C1C1E" }, "background");
-    const chipBackgroundColor = useThemeColor({ light: "#F2F2F7", dark: "#1C1C1E" }, "background");
-    const cardBackgroundColor = useThemeColor({ light: "#FFFFFF", dark: "#1C1C1E" }, "background");
-    const accentColor = useThemeColor({ light: "#0A84FF", dark: "#0A84FF" }, "tint");
-    const mapBackgroundColor = useThemeColor({ light: "#E5E7EB", dark: "#111214" }, "background");
 
     const companies = companiesQuery.data?.results ?? [];
     const visibleCompanies = companies;
@@ -157,7 +148,17 @@ export function DiscoveryScreen() {
     }, [initialRegion]);
 
     return (
-        <ScreenShell title="Discover" showHero={false}>
+        <ScreenShell
+            eyebrow="Current location"
+            title={
+                <View style={styles.locationTitleRow}>
+                    <IconSymbol color={theme.tint} name="mappin.and.ellipse" size={24} />
+                    <ThemedText type="title" style={styles.locationTitle}>
+                        Nis, RS
+                    </ThemedText>
+                </View>
+            }
+        >
             <View style={styles.stack}>
                 <TextInput
                     value={query}
@@ -165,7 +166,7 @@ export function DiscoveryScreen() {
                         setQuery(nextValue);
                     }}
                     placeholder="Search shops"
-                    placeholderTextColor={mutedColor}
+                    placeholderTextColor={theme.textSubtle}
                     autoCapitalize="words"
                     autoCorrect={false}
                     returnKeyType="search"
@@ -173,9 +174,9 @@ export function DiscoveryScreen() {
                     style={[
                         styles.searchInput,
                         {
-                            color: textColor,
-                            backgroundColor: inputBackgroundColor,
-                            borderColor,
+                            color: theme.text,
+                            backgroundColor: theme.surface,
+                            borderColor: theme.border,
                         },
                     ]}
                 />
@@ -188,34 +189,32 @@ export function DiscoveryScreen() {
                             style={[
                                 styles.segment,
                                 {
-                                    backgroundColor: mode === nextMode ? accentColor : chipBackgroundColor,
-                                    borderColor,
+                                    backgroundColor: mode === nextMode ? theme.tint : theme.surface,
+                                    borderColor: mode === nextMode ? theme.tint : theme.border,
                                 },
                             ]}
                         >
-                            <ThemedText style={[styles.segmentLabel, { color: mode === nextMode ? "#FFFFFF" : textColor }]}>
+                            <ThemedText style={[styles.segmentLabel, { color: mode === nextMode ? theme.tintForeground : theme.text }]}>
                                 {nextMode === "list" ? "List" : "Map"}
                             </ThemedText>
                         </Pressable>
                     ))}
                 </View>
 
-                {companiesQuery.isPending ? <ThemedText style={[styles.statusText, { color: mutedColor }]}>Loading shops…</ThemedText> : null}
+                {companiesQuery.isPending ? <ThemedText style={[styles.statusText, { color: theme.textMuted }]}>Loading shops…</ThemedText> : null}
 
-                {companiesQuery.isError ? <ThemedText style={[styles.statusText, { color: mutedColor }]}>Could not load shops.</ThemedText> : null}
+                {companiesQuery.isError ? <ThemedText style={[styles.statusText, { color: theme.textMuted }]}>Could not load shops.</ThemedText> : null}
 
                 {!companiesQuery.isPending && !companiesQuery.isError && visibleCompanies.length === 0 ? (
                     <ThemedView
                         style={[
                             styles.emptyCard,
-                            {
-                                backgroundColor: cardBackgroundColor,
-                                borderColor,
-                            },
+                            Shadows.card,
+                            { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
                         ]}
                     >
                         <ThemedText type="defaultSemiBold">No shops found</ThemedText>
-                        <ThemedText style={[styles.emptyText, { color: mutedColor }]}>Try a different search.</ThemedText>
+                        <ThemedText style={[styles.emptyText, { color: theme.textMuted }]}>Try a different search.</ThemedText>
                     </ThemedView>
                 ) : null}
 
@@ -226,18 +225,16 @@ export function DiscoveryScreen() {
                                 <CompanyCard
                                     key={company.id}
                                     company={company}
-                                    mutedColor={mutedColor}
-                                    cardBackgroundColor={cardBackgroundColor}
-                                    borderColor={borderColor}
+                                    theme={theme}
                                 />
                             ))}
                         </View>
                     ) : (
                         <View style={styles.stack}>
-                            <View style={[styles.mapCard, { backgroundColor: cardBackgroundColor, borderColor }]}>
+                            <View style={[styles.mapCard, Shadows.card, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
                                 <MapView
                                     initialRegion={initialRegion}
-                                    style={[styles.map, { backgroundColor: mapBackgroundColor }]}
+                                    style={[styles.map, { backgroundColor: theme.surfaceMuted }]}
                                     onRegionChangeComplete={setMapRegion}
                                 >
                                     {mapCompanies.map((company) => (
@@ -263,14 +260,12 @@ export function DiscoveryScreen() {
                                         <CompanyCard
                                             key={company.id}
                                             company={company}
-                                            mutedColor={mutedColor}
-                                            cardBackgroundColor={cardBackgroundColor}
-                                            borderColor={borderColor}
+                                            theme={theme}
                                         />
                                     ))}
                                 </View>
                             ) : (
-                                <ThemedText style={[styles.statusText, { color: mutedColor }]}>
+                                <ThemedText style={[styles.statusText, { color: theme.textMuted }]}>
                                     No shops are currently visible in this map area.
                                 </ThemedText>
                             )}
@@ -284,23 +279,31 @@ export function DiscoveryScreen() {
 
 const styles = StyleSheet.create({
     stack: {
-        gap: 12,
+        gap: Spacing.md,
+    },
+    locationTitleRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: Spacing.xs,
+    },
+    locationTitle: {
+        lineHeight: 40,
     },
     searchInput: {
         minHeight: 52,
-        borderRadius: 14,
-        paddingHorizontal: 16,
+        borderRadius: Radius.md,
+        paddingHorizontal: Spacing.md,
         fontSize: 16,
         borderWidth: StyleSheet.hairlineWidth,
     },
     segmentRow: {
         flexDirection: "row",
-        gap: 8,
+        gap: Spacing.xs,
     },
     segment: {
         flex: 1,
-        minHeight: 38,
-        borderRadius: 12,
+        minHeight: 42,
+        borderRadius: Radius.md,
         alignItems: "center",
         justifyContent: "center",
         borderWidth: StyleSheet.hairlineWidth,
@@ -311,21 +314,20 @@ const styles = StyleSheet.create({
         fontWeight: "600",
     },
     statusText: {
-        fontSize: 15,
+        ...Typography.bodySm,
     },
     emptyCard: {
-        borderRadius: 16,
+        borderRadius: Radius.lg,
         borderWidth: StyleSheet.hairlineWidth,
-        padding: 16,
+        padding: Spacing.md,
         gap: 2,
     },
     emptyText: {
-        fontSize: 15,
-        lineHeight: 20,
+        ...Typography.bodySm,
     },
     mapCard: {
         overflow: "hidden",
-        borderRadius: 18,
+        borderRadius: Radius.lg,
         borderWidth: StyleSheet.hairlineWidth,
     },
     map: {
@@ -333,27 +335,33 @@ const styles = StyleSheet.create({
         width: "100%",
     },
     companyCard: {
-        borderRadius: 16,
+        borderRadius: Radius.lg,
         borderWidth: StyleSheet.hairlineWidth,
-        paddingHorizontal: 16,
+        paddingHorizontal: Spacing.md,
         paddingVertical: 14,
     },
     companyHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
-        gap: 12,
+        gap: Spacing.sm,
         alignItems: "flex-start",
     },
     companyHeaderText: {
         flex: 1,
         gap: 2,
     },
+    cardAside: {
+        alignItems: "flex-end",
+        gap: 2,
+    },
     metaText: {
-        fontSize: 14,
-        lineHeight: 20,
+        ...Typography.bodySm,
     },
     distanceText: {
-        fontSize: 13,
-        lineHeight: 18,
+        ...Typography.label,
+    },
+    arrow: {
+        fontSize: 24,
+        lineHeight: 24,
     },
 });

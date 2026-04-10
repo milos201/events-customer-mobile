@@ -1,6 +1,29 @@
 import { SymbolView, type SymbolViewProps, type SymbolWeight } from "expo-symbols";
 import type { StyleProp, ViewStyle } from "react-native";
 
+type IconSymbolName =
+    | "house.fill"
+    | "magnifyingglass"
+    | "paperplane.fill"
+    | "calendar"
+    | "person.fill"
+    | "mappin.and.ellipse"
+    | "chevron.left.forwardslash.chevron.right"
+    | "chevron.right";
+
+type NativeSymbolMapping = Record<IconSymbolName, SymbolViewProps["name"]>;
+
+const MAPPING = {
+    "house.fill": "house.fill",
+    magnifyingglass: "magnifyingglass",
+    "paperplane.fill": "paperplane.fill",
+    calendar: "calendar",
+    "person.fill": "person.fill",
+    "mappin.and.ellipse": "location.north.fill",
+    "chevron.left.forwardslash.chevron.right": "chevron.left.forwardslash.chevron.right",
+    "chevron.right": "chevron.right",
+} as const satisfies NativeSymbolMapping;
+
 export function IconSymbol({
     name,
     size = 24,
@@ -8,7 +31,7 @@ export function IconSymbol({
     style,
     weight = "regular",
 }: {
-    name: SymbolViewProps["name"];
+    name: IconSymbolName;
     size?: number;
     color: string;
     style?: StyleProp<ViewStyle>;
@@ -19,7 +42,7 @@ export function IconSymbol({
             weight={weight}
             tintColor={color}
             resizeMode="scaleAspectFit"
-            name={name}
+            name={MAPPING[name]}
             style={[
                 {
                     width: size,

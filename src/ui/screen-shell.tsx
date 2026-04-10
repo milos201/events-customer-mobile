@@ -5,14 +5,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { Fonts } from "@/constants/theme";
+import { Fonts, Radius, Shadows, Spacing, Typography } from "@/theme";
 
 type ScreenShellProps = PropsWithChildren<{
     eyebrow?: string;
-    title: string;
+    title: ReactNode;
     description?: string;
     showHero?: boolean;
+    includeTopInset?: boolean;
 }>;
 
 type SectionCardProps = PropsWithChildren<{
@@ -45,20 +47,32 @@ type ActionButtonProps = {
     trailing?: ReactNode;
 };
 
-export function ScreenShell({ eyebrow, title, description, children, showHero = true }: ScreenShellProps) {
+export function ScreenShell({
+    eyebrow,
+    title,
+    description,
+    children,
+    showHero = true,
+    includeTopInset = true,
+}: ScreenShellProps) {
     const insets = useSafeAreaInsets();
-    const contentPaddingTop = showHero ? insets.top + 8 : 8;
+    const theme = useAppTheme();
+    const contentPaddingTop = showHero ? (includeTopInset ? insets.top + 8 : 8) : 8;
 
     return (
-        <ThemedView style={styles.screen}>
+        <ThemedView style={[styles.screen, { backgroundColor: theme.backgroundCanvas }]}>
             <ScrollView contentContainerStyle={[styles.content, { paddingTop: contentPaddingTop, paddingBottom: insets.bottom + 24 }]}>
                 {showHero ? (
                     <View style={styles.hero}>
-                        {eyebrow ? <ThemedText style={styles.eyebrow}>{eyebrow}</ThemedText> : null}
-                        <ThemedText type="title" style={styles.title}>
-                            {title}
-                        </ThemedText>
-                        {description ? <ThemedText style={styles.description}>{description}</ThemedText> : null}
+                        {eyebrow ? <ThemedText style={[styles.eyebrow, { color: theme.textSubtle }]}>{eyebrow}</ThemedText> : null}
+                        {typeof title === "string" ? (
+                            <ThemedText type="title" style={styles.title}>
+                                {title}
+                            </ThemedText>
+                        ) : (
+                            title
+                        )}
+                        {description ? <ThemedText style={[styles.description, { color: theme.textMuted }]}>{description}</ThemedText> : null}
                     </View>
                 ) : null}
                 <View style={styles.stack}>{children}</View>
@@ -68,9 +82,11 @@ export function ScreenShell({ eyebrow, title, description, children, showHero = 
 }
 
 export function SectionCard({ title, children }: SectionCardProps) {
+    const theme = useAppTheme();
+
     return (
-        <ThemedView style={styles.card} lightColor="#FFFFFF" darkColor="#151718">
-            <ThemedText type="subtitle" style={styles.cardTitle}>
+        <ThemedView style={[styles.card, Shadows.card, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]} lightColor={theme.surfaceElevated} darkColor={theme.surfaceElevated}>
+            <ThemedText type="subtitle" style={[styles.cardTitle, { color: theme.textMuted }]}>
                 {title}
             </ThemedText>
             <View style={styles.stackSm}>{children}</View>
@@ -79,12 +95,14 @@ export function SectionCard({ title, children }: SectionCardProps) {
 }
 
 export function BulletList({ items }: ListProps) {
+    const theme = useAppTheme();
+
     return (
         <View style={styles.stackXs}>
             {items.map((item) => (
                 <View key={item} style={styles.bulletRow}>
-                    <View style={styles.bullet} />
-                    <ThemedText style={styles.bulletText}>{item}</ThemedText>
+                    <View style={[styles.bullet, { backgroundColor: theme.tint }]} />
+                    <ThemedText style={[styles.bulletText, { color: theme.textMuted }]}>{item}</ThemedText>
                 </View>
             ))}
         </View>
@@ -92,15 +110,24 @@ export function BulletList({ items }: ListProps) {
 }
 
 export function ActionLink({ href, label, variant = "primary", trailing }: ActionLinkProps) {
+    const theme = useAppTheme();
     const secondaryTextColor = useThemeColor({}, "text");
 
     return (
         <Link href={href} asChild>
-            <Pressable style={[styles.action, variant === "secondary" ? styles.actionSecondary : styles.actionPrimary]}>
+            <Pressable
+                style={[
+                    styles.action,
+                    Shadows.card,
+                    variant === "secondary"
+                        ? [styles.actionSecondary, { backgroundColor: theme.surface, borderColor: theme.border }]
+                        : [styles.actionPrimary, { backgroundColor: theme.tint }],
+                ]}
+            >
                 <ThemedText
                     style={[
                         styles.actionText,
-                        variant === "secondary" ? { color: secondaryTextColor } : null,
+                        variant === "secondary" ? { color: secondaryTextColor } : { color: theme.tintForeground },
                     ]}
                 >
                     {label}
@@ -116,17 +143,24 @@ export function ActionGroup({ children }: ActionGroupProps) {
 }
 
 export function ActionButton({ label, onPress, variant = "primary", trailing }: ActionButtonProps) {
+    const theme = useAppTheme();
     const secondaryTextColor = useThemeColor({}, "text");
 
     return (
         <Pressable
-            style={[styles.action, variant === "secondary" ? styles.actionSecondary : styles.actionPrimary]}
+            style={[
+                styles.action,
+                Shadows.card,
+                variant === "secondary"
+                    ? [styles.actionSecondary, { backgroundColor: theme.surface, borderColor: theme.border }]
+                    : [styles.actionPrimary, { backgroundColor: theme.tint }],
+            ]}
             onPress={onPress}
         >
             <ThemedText
                 style={[
                     styles.actionText,
-                    variant === "secondary" ? { color: secondaryTextColor } : null,
+                    variant === "secondary" ? { color: secondaryTextColor } : { color: theme.tintForeground },
                 ]}
             >
                 {label}
@@ -138,11 +172,18 @@ export function ActionButton({ label, onPress, variant = "primary", trailing }: 
 
 export function BackAction({ label, fallbackHref, variant = "secondary" }: BackActionProps) {
     const router = useRouter();
+    const theme = useAppTheme();
     const secondaryTextColor = useThemeColor({}, "text");
 
     return (
         <Pressable
-            style={[styles.action, variant === "secondary" ? styles.actionSecondary : styles.actionPrimary]}
+            style={[
+                styles.action,
+                Shadows.card,
+                variant === "secondary"
+                    ? [styles.actionSecondary, { backgroundColor: theme.surface, borderColor: theme.border }]
+                    : [styles.actionPrimary, { backgroundColor: theme.tint }],
+            ]}
             onPress={() => {
                 if (router.canGoBack()) {
                     router.back();
@@ -155,7 +196,7 @@ export function BackAction({ label, fallbackHref, variant = "secondary" }: BackA
             <ThemedText
                 style={[
                     styles.actionText,
-                    variant === "secondary" ? { color: secondaryTextColor } : null,
+                    variant === "secondary" ? { color: secondaryTextColor } : { color: theme.tintForeground },
                 ]}
             >
                 {label}
@@ -169,82 +210,78 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     content: {
-        paddingHorizontal: 16,
-        gap: 14,
+        paddingHorizontal: Spacing.md,
+        gap: Spacing.lg,
     },
     hero: {
-        gap: 2,
+        gap: Spacing.xs,
+        paddingBottom: Spacing.xs,
     },
     eyebrow: {
-        fontSize: 12,
-        opacity: 0.55,
+        ...Typography.sectionEyebrow,
+        fontFamily: Fonts.sans,
     },
     title: {
-        lineHeight: 34,
+        lineHeight: 40,
     },
     description: {
-        fontSize: 14,
-        lineHeight: 20,
-        opacity: 0.72,
+        ...Typography.bodySm,
+        fontFamily: Fonts.sans,
     },
     stack: {
-        gap: 12,
+        gap: Spacing.md,
     },
     stackSm: {
-        gap: 10,
+        gap: Spacing.sm,
     },
     stackXs: {
-        gap: 8,
+        gap: Spacing.xs,
     },
     card: {
-        borderRadius: 14,
-        padding: 14,
-        gap: 10,
+        borderRadius: Radius.lg,
+        padding: Spacing.md,
+        gap: Spacing.sm,
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: "rgba(60, 60, 67, 0.18)",
     },
     cardTitle: {
         fontFamily: Fonts.sans,
-        fontSize: 17,
+        ...Typography.sectionEyebrow,
         fontWeight: "600",
     },
     bulletRow: {
         flexDirection: "row",
-        gap: 8,
+        gap: Spacing.xs,
         alignItems: "flex-start",
     },
     bullet: {
         width: 6,
         height: 6,
         borderRadius: 999,
-        backgroundColor: "#8E8E93",
         marginTop: 8,
     },
     bulletText: {
         flex: 1,
     },
     action: {
-        minHeight: 50,
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
+        minHeight: 56,
+        borderRadius: Radius.md,
+        paddingHorizontal: Spacing.md,
+        paddingVertical: Spacing.sm,
         alignItems: "center",
         justifyContent: "space-between",
         flexDirection: "row",
+        borderWidth: StyleSheet.hairlineWidth,
     },
     actionGroup: {
-        gap: 8,
+        gap: Spacing.xs,
     },
-    actionPrimary: {
-        backgroundColor: "#0A84FF",
-    },
+    actionPrimary: {},
     actionSecondary: {
-        borderWidth: 1,
-        borderColor: "rgba(60, 60, 67, 0.2)",
+        borderWidth: StyleSheet.hairlineWidth,
     },
     actionText: {
-        color: "#FFFFFF",
         fontSize: 16,
         fontWeight: "500",
+        fontFamily: Fonts.sans,
     },
 });

@@ -6,7 +6,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useAuthSession } from "@/features/auth/session-provider";
-import { useThemeColor } from "@/hooks/use-theme-color";
+import { useAppTheme } from "@/hooks/use-app-theme";
+import { Radius, Shadows, Spacing, Typography } from "@/theme";
 import { ActionButton } from "@/ui/screen-shell";
 
 export function SignInScreen() {
@@ -17,12 +18,7 @@ export function SignInScreen() {
     const safeReturnTo: Href = returnTo && returnTo.startsWith("/") ? (returnTo as Href) : ("/" as Href);
     const [authMode, setAuthMode] = useState<"sign-in" | "create-account">(mode === "create-account" ? "create-account" : "sign-in");
     const isCreateAccount = authMode === "create-account";
-    const textColor = useThemeColor({}, "text");
-    const mutedColor = useThemeColor({ light: "#6B7280", dark: "#8E8E93" }, "icon");
-    const borderColor = useThemeColor({ light: "rgba(60, 60, 67, 0.18)", dark: "rgba(84, 84, 88, 0.65)" }, "icon");
-    const sheetColor = useThemeColor({ light: "#FFFFFF", dark: "#1C1C1E" }, "background");
-    const inputColor = useThemeColor({ light: "#F2F2F7", dark: "#151718" }, "background");
-    const accentColor = useThemeColor({ light: "#0A84FF", dark: "#0A84FF" }, "tint");
+    const theme = useAppTheme();
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -76,7 +72,7 @@ export function SignInScreen() {
                 >
                     <View style={styles.topBar}>
                         <Pressable onPress={dismiss}>
-                            <ThemedText style={[styles.dismissText, { color: mutedColor }]}>Not now</ThemedText>
+                            <ThemedText style={[styles.dismissText, { color: theme.textMuted }]}>Not now</ThemedText>
                         </Pressable>
                     </View>
 
@@ -84,8 +80,9 @@ export function SignInScreen() {
                         style={[
                             styles.sheet,
                             {
-                                backgroundColor: sheetColor,
-                                borderColor,
+                                ...Shadows.floating,
+                                backgroundColor: theme.surfaceElevated,
+                                borderColor: theme.border,
                             },
                         ]}
                     >
@@ -93,7 +90,7 @@ export function SignInScreen() {
                             <ThemedText type="title" style={styles.title}>
                                 {isCreateAccount ? "Create account" : "Sign in"}
                             </ThemedText>
-                            <ThemedText style={[styles.description, { color: mutedColor }]}>
+                            <ThemedText style={[styles.description, { color: theme.textMuted }]}>
                                 {isCreateAccount ? "Create an account and continue where you left off." : "Continue to your bookings and appointments."}
                             </ThemedText>
                         </View>
@@ -116,12 +113,12 @@ export function SignInScreen() {
                                         style={[
                                             styles.segment,
                                             {
-                                                backgroundColor: selected ? accentColor : inputColor,
-                                                borderColor,
+                                                backgroundColor: selected ? theme.tint : theme.surface,
+                                                borderColor: selected ? theme.tint : theme.border,
                                             },
                                         ]}
                                     >
-                                        <ThemedText style={[styles.segmentText, { color: selected ? "#FFFFFF" : textColor }]}>
+                                        <ThemedText style={[styles.segmentText, { color: selected ? theme.tintForeground : theme.text }]}>
                                             {option.label}
                                         </ThemedText>
                                     </Pressable>
@@ -136,8 +133,8 @@ export function SignInScreen() {
                                     autoComplete="name"
                                     onChangeText={setName}
                                     placeholder="Your name"
-                                    placeholderTextColor={mutedColor}
-                                    style={[styles.input, { backgroundColor: inputColor, borderColor, color: textColor }]}
+                                    placeholderTextColor={theme.textSubtle}
+                                    style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
                                     value={name}
                                 />
                             ) : null}
@@ -147,8 +144,8 @@ export function SignInScreen() {
                                 keyboardType="email-address"
                                 onChangeText={setEmail}
                                 placeholder="customer@example.com"
-                                placeholderTextColor={mutedColor}
-                                style={[styles.input, { backgroundColor: inputColor, borderColor, color: textColor }]}
+                                placeholderTextColor={theme.textSubtle}
+                                style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
                                 value={email}
                             />
                             <TextInput
@@ -156,9 +153,9 @@ export function SignInScreen() {
                                 autoComplete="password"
                                 onChangeText={setPassword}
                                 placeholder="Password"
-                                placeholderTextColor={mutedColor}
+                                placeholderTextColor={theme.textSubtle}
                                 secureTextEntry
-                                style={[styles.input, { backgroundColor: inputColor, borderColor, color: textColor }]}
+                                style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
                                 value={password}
                             />
                         </View>
@@ -214,7 +211,7 @@ export function SignInScreen() {
                             }}
                         />
 
-                        <ThemedText style={[styles.footnote, { color: mutedColor }]}>
+                        <ThemedText style={[styles.footnote, { color: theme.textMuted }]}>
                             You will return to {safeReturnTo.toString() === "/" ? "Discover" : "where you left off"}.
                         </ThemedText>
                     </ThemedView>
@@ -230,9 +227,9 @@ const styles = StyleSheet.create({
     },
     content: {
         flexGrow: 1,
-        paddingHorizontal: 16,
+        paddingHorizontal: Spacing.md,
         justifyContent: "flex-end",
-        gap: 16,
+        gap: Spacing.md,
     },
     topBar: {
         alignItems: "flex-end",
@@ -242,10 +239,10 @@ const styles = StyleSheet.create({
         lineHeight: 20,
     },
     sheet: {
-        borderRadius: 24,
+        borderRadius: Radius.xl,
         borderWidth: StyleSheet.hairlineWidth,
         padding: 18,
-        gap: 16,
+        gap: Spacing.md,
     },
     header: {
         gap: 4,
@@ -254,17 +251,16 @@ const styles = StyleSheet.create({
         lineHeight: 32,
     },
     description: {
-        fontSize: 15,
-        lineHeight: 20,
+        ...Typography.bodySm,
     },
     segmentRow: {
         flexDirection: "row",
-        gap: 8,
+        gap: Spacing.xs,
     },
     segment: {
         flex: 1,
         minHeight: 40,
-        borderRadius: 12,
+        borderRadius: Radius.md,
         borderWidth: StyleSheet.hairlineWidth,
         alignItems: "center",
         justifyContent: "center",
@@ -274,11 +270,11 @@ const styles = StyleSheet.create({
         fontWeight: "600",
     },
     fieldGroup: {
-        gap: 10,
+        gap: Spacing.sm,
     },
     input: {
         minHeight: 52,
-        borderRadius: 14,
+        borderRadius: Radius.md,
         borderWidth: StyleSheet.hairlineWidth,
         paddingHorizontal: 14,
         paddingVertical: 12,
@@ -290,7 +286,7 @@ const styles = StyleSheet.create({
         color: "#FF3B30",
     },
     footnote: {
-        fontSize: 13,
-        lineHeight: 18,
+        ...Typography.label,
+        fontWeight: "400",
     },
 });
