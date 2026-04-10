@@ -4,12 +4,12 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { ScreenShell } from "@/components/ui/screen-shell";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { usePublicCompanyBundle } from "@/features/shops/queries";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { getInitials } from "@/lib/formatters";
 import { Radius, Shadows, Spacing, Typography } from "@/theme";
-import { ScreenShell } from "@/ui/screen-shell";
 
 type ShopTab = "services" | "barbers" | "about";
 

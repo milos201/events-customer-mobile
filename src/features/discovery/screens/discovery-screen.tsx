@@ -7,11 +7,11 @@ import type { PublicCompany } from "@/api/types";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { ScreenShell } from "@/components/ui/screen-shell";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { usePublicCompanies } from "@/features/discovery/queries";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { Radius, Shadows, Spacing, Typography } from "@/theme";
-import { ScreenShell } from "@/ui/screen-shell";
 
 type DiscoveryMode = "list" | "map";
 

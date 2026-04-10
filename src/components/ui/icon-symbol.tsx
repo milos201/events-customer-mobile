@@ -6,32 +6,21 @@ import type { ComponentProps } from "react";
 import type { OpaqueColorValue, StyleProp, TextStyle } from "react-native";
 
 type IconSymbolName =
-    | "house.fill"
     | "magnifyingglass"
-    | "paperplane.fill"
     | "calendar"
     | "person.fill"
     | "mappin.and.ellipse"
     | "chevron.left"
-    | "chevron.left.forwardslash.chevron.right"
     | "chevron.right";
 
 type IconMapping = Record<IconSymbolName, ComponentProps<typeof MaterialIcons>["name"]>;
 
-/**
- * Add your SF Symbols to Material Icons mappings here.
- * - see Material Icons in the [Icons Directory](https://icons.expo.fyi).
- * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
- */
 const MAPPING = {
-    "house.fill": "home",
     magnifyingglass: "search",
-    "paperplane.fill": "send",
     calendar: "calendar-today",
     "person.fill": "person",
     "mappin.and.ellipse": "near-me",
     "chevron.left": "chevron-left",
-    "chevron.left.forwardslash.chevron.right": "code",
     "chevron.right": "chevron-right",
 } as IconMapping;
 

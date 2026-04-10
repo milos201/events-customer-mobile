@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Switch, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
+import { ScreenShell } from "@/components/ui/screen-shell";
 import { isUpcomingAppointment } from "@/features/account/appointment-utils";
 import { useOwnAppointments } from "@/features/account/queries";
 import { AuthGate } from "@/features/auth/components/auth-gate";
@@ -15,7 +16,6 @@ import { useAuthSession } from "@/features/auth/session-provider";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { getInitials } from "@/lib/formatters";
 import { Radius, Shadows, Spacing, Typography } from "@/theme";
-import { ScreenShell } from "@/ui/screen-shell";
 
 type ProfileActionTone = "default" | "danger";
 

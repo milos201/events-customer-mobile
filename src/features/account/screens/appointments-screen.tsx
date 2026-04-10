@@ -6,6 +6,7 @@ import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { ApiError, ApiUnauthorizedError } from "@/api/http";
 import type { AppointmentRecord } from "@/api/types";
 import { ThemedText } from "@/components/themed-text";
+import { ScreenShell } from "@/components/ui/screen-shell";
 import { SegmentedControl, SegmentedControlCountBadge } from "@/components/ui/segmented-control";
 import {
     canCancelAppointment,
@@ -18,7 +19,6 @@ import { useAuthSession } from "@/features/auth/session-provider";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { formatTimeLabel } from "@/lib/formatters";
 import { Fonts, Radius, Shadows, Spacing, Typography } from "@/theme";
-import { ScreenShell } from "@/ui/screen-shell";
 
 type AppointmentsTab = "upcoming" | "past";
 

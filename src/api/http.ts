@@ -35,7 +35,7 @@ export class ApiUnauthorizedError extends ApiError {
     }
 }
 
-export class ApiNetworkError extends Error {
+class ApiNetworkError extends Error {
     url: string;
     cause: unknown;
 

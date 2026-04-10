@@ -2,27 +2,21 @@ import { SymbolView, type SymbolViewProps, type SymbolWeight } from "expo-symbol
 import type { StyleProp, ViewStyle } from "react-native";
 
 type IconSymbolName =
-    | "house.fill"
     | "magnifyingglass"
-    | "paperplane.fill"
     | "calendar"
     | "person.fill"
     | "mappin.and.ellipse"
     | "chevron.left"
-    | "chevron.left.forwardslash.chevron.right"
     | "chevron.right";
 
 type NativeSymbolMapping = Record<IconSymbolName, SymbolViewProps["name"]>;
 
 const MAPPING = {
-    "house.fill": "house.fill",
     magnifyingglass: "magnifyingglass",
-    "paperplane.fill": "paperplane.fill",
     calendar: "calendar",
     "person.fill": "person.fill",
     "mappin.and.ellipse": "location.north.fill",
     "chevron.left": "chevron.left",
-    "chevron.left.forwardslash.chevron.right": "chevron.left.forwardslash.chevron.right",
     "chevron.right": "chevron.right",
 } as const satisfies NativeSymbolMapping;
 

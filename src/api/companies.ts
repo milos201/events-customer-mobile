@@ -14,11 +14,11 @@ export async function listPublicCompanies(input: ListPublicCompaniesInput = {}, 
     return await apiGet<PaginatedResult<PublicCompany>>("/companies", { query: input, signal });
 }
 
-export async function getPublicCompanyBySlug(slug: string, signal?: AbortSignal) {
+async function getPublicCompanyBySlug(slug: string, signal?: AbortSignal) {
     return await apiGet<PublicCompany>(`/companies/public/${slug}`, { signal });
 }
 
-export async function getCompanyDetails(companyId: number, signal?: AbortSignal) {
+async function getCompanyDetails(companyId: number, signal?: AbortSignal) {
     return await apiGet<CompanyDetails>(`/companies/${companyId}`, { signal });
 }
 

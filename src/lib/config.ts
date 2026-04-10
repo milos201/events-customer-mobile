@@ -38,21 +38,18 @@ function ensureHttpUrl(value: string, variableName: string) {
 }
 
 const resolvedApiBaseUrl = resolveApiBaseUrl();
+const apiBaseUrl = ensureHttpUrl(resolvedApiBaseUrl.value, "EXPO_PUBLIC_API_URL");
 
 export const appConfig = {
     api: {
-        baseUrl: ensureHttpUrl(resolvedApiBaseUrl.value, "EXPO_PUBLIC_API_URL"),
-        v1Url: `${ensureHttpUrl(resolvedApiBaseUrl.value, "EXPO_PUBLIC_API_URL")}/v1`,
+        baseUrl: apiBaseUrl,
+        v1Url: `${apiBaseUrl}/v1`,
         timeoutMs: DEFAULT_API_TIMEOUT_MS,
         source: resolvedApiBaseUrl.source,
     },
     auth: {
-        baseUrl: `${ensureHttpUrl(resolvedApiBaseUrl.value, "EXPO_PUBLIC_API_URL")}/v1/auth`,
+        baseUrl: `${apiBaseUrl}/v1/auth`,
         storagePrefix: "events-customer-mobile",
         scheme: "eventscustomermobile",
     },
 } as const;
-
-export const apiBaseUrl = appConfig.api.baseUrl;
-export const apiV1Url = appConfig.api.v1Url;
-export const authBaseUrl = appConfig.auth.baseUrl;

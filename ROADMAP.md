@@ -124,13 +124,13 @@ Example target structure:
 - `src/features/` for domain features such as auth, shops, bookings, and account
 - `src/api/` for generated client and API wrappers
 - `src/lib/` for config, auth helpers, query client, and utilities
-- `src/ui/` for shared presentation components
+- `src/components/ui/` for shared presentation components
 - `src/types/` only when types are app-specific and not generated
 
 ## Immediate Next Steps
 
-1. Remove the starter/demo Expo screens and replace them with route groups aligned to the product.
-2. Add the generated API client flow from the backend OpenAPI output.
-3. Implement auth plumbing with Better Auth and secure storage.
-4. Build the discovery map and barber shop details screens.
-5. Build the booking flow directly from the stories in [`/Users/milos/Projects/events-api/USER_STORIES.md`](/Users/milos/Projects/events-api/USER_STORIES.md).
+1. Add the generated API client flow from the backend OpenAPI output.
+2. Replace remaining hand-written DTOs with generated types.
+3. Wire location permission handling into discovery.
+4. Add push notification registration and status-change handling.
+5. Expand tests around auth, booking, and appointment state transitions.

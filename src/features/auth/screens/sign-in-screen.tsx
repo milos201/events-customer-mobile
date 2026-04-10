@@ -5,11 +5,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { ActionButton } from "@/components/ui/screen-shell";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { useAuthSession } from "@/features/auth/session-provider";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { Radius, Shadows, Spacing, Typography } from "@/theme";
-import { ActionButton } from "@/ui/screen-shell";
 
 export function SignInScreen() {
     const router = useRouter();
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     content: {
         flexGrow: 1,
         paddingHorizontal: Spacing.md,
-        justifyContent: "flex-end",
+        justifyContent: "center",
         gap: Spacing.md,
     },
     topBar: {
