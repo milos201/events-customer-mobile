@@ -312,7 +312,6 @@ const styles = StyleSheet.create({
         borderRadius: Radius.full,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#F3E7DA",
     },
     barberInitials: {
         ...Typography.label,

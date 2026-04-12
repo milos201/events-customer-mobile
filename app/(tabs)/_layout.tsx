@@ -3,7 +3,7 @@ import { Platform, StyleSheet, View } from "react-native";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Colors, Fonts } from "@/constants/theme";
+import { Colors, Fonts, Radius, Spacing } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
 type TabIconName = "magnifyingglass" | "calendar" | "person.fill";
@@ -33,7 +33,6 @@ export default function TabsLayout() {
     const colorScheme = useColorScheme();
     const resolvedScheme = colorScheme ?? "light";
     const theme = Colors[resolvedScheme];
-    const isDark = resolvedScheme === "dark";
 
     return (
         <Tabs
@@ -47,9 +46,9 @@ export default function TabsLayout() {
                 tabBarStyle: [
                     styles.tabBar,
                     {
-                        backgroundColor: isDark ? "rgba(38, 30, 25, 0.86)" : "rgba(255, 252, 248, 0.88)",
-                        borderColor: isDark ? "rgba(255, 244, 236, 0.12)" : "rgba(255, 255, 255, 0.72)",
-                        shadowColor: isDark ? "#000000" : "#53371F",
+                        backgroundColor: theme.tabBarSurface,
+                        borderColor: theme.tabBarBorder,
+                        shadowColor: theme.tabBarShadow,
                     },
                 ],
                 headerShown: false,
@@ -91,18 +90,18 @@ export default function TabsLayout() {
 const styles = StyleSheet.create({
     tabBar: {
         position: "absolute",
-        left: 24,
-        right: 24,
-        start: 24,
-        end: 24,
+        left: Spacing.xl,
+        right: Spacing.xl,
+        start: Spacing.xl,
+        end: Spacing.xl,
         bottom: 10,
         height: 70,
-        paddingTop: 8,
+        paddingTop: Spacing.xs,
         paddingBottom: 7,
         paddingHorizontal: 10,
         borderTopWidth: 0,
         borderWidth: StyleSheet.hairlineWidth,
-        borderRadius: 28,
+        borderRadius: Radius.xl,
         shadowOpacity: 0.18,
         shadowRadius: 22,
         shadowOffset: {

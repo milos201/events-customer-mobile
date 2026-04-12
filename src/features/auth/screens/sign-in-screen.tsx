@@ -163,7 +163,9 @@ export function SignInScreen() {
                             />
                         </View>
 
-                        {errorMessage ? <ThemedText style={styles.errorText}>{errorMessage}</ThemedText> : null}
+                        {errorMessage ? (
+                            <ThemedText style={[styles.errorText, { color: theme.danger }]}>{errorMessage}</ThemedText>
+                        ) : null}
 
                         <ActionButton
                             label={
@@ -272,7 +274,6 @@ const styles = StyleSheet.create({
     errorText: {
         fontSize: 14,
         lineHeight: 18,
-        color: "#FF3B30",
     },
     footnote: {
         ...Typography.label,
