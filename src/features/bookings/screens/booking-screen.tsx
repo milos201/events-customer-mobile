@@ -617,7 +617,6 @@ export function BookingScreen() {
                     style={[
                         styles.ctaWrap,
                         {
-                            backgroundColor: theme.backgroundCanvas,
                             paddingBottom: Spacing.sm,
                             bottom: bottomTabBarHeight + Spacing.xs,
                         },
