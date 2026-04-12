@@ -1,5 +1,6 @@
+import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
 import { type Href, Link } from "expo-router";
-import type { PropsWithChildren, ReactNode } from "react";
+import { type PropsWithChildren, type ReactNode, useContext } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -88,13 +89,15 @@ export function ScreenShell({
 }: ScreenShellProps) {
     const insets = useSafeAreaInsets();
     const theme = useAppTheme();
+    const bottomTabBarHeight = useContext(BottomTabBarHeightContext) ?? 0;
     const layoutConfig = SCREEN_SHELL_LAYOUTS[layout];
     const resolvedHorizontalPadding = Spacing[horizontalPadding ?? layoutConfig.horizontalPadding];
     const resolvedTopPadding = Spacing[topPadding ?? layoutConfig.topPadding];
     const resolvedBottomPadding = Spacing[bottomPadding ?? layoutConfig.bottomPadding];
     const resolvedContentGap = Spacing[contentGap ?? layoutConfig.contentGap];
     const contentPaddingTop = (topInset === "safe" ? insets.top : 0) + resolvedTopPadding;
-    const contentPaddingBottom = (bottomInset === "safe" ? insets.bottom : 0) + resolvedBottomPadding;
+    const contentPaddingBottom =
+        (bottomInset === "safe" ? insets.bottom : 0) + resolvedBottomPadding + bottomTabBarHeight;
 
     return (
         <ThemedView style={[styles.screen, { backgroundColor: theme.backgroundCanvas }]}>

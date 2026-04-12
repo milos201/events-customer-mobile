@@ -1,5 +1,6 @@
+import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
@@ -19,6 +20,7 @@ export function ShopDetailsScreen() {
     const resolvedShopId = shopId ?? "shop";
     const companyQuery = usePublicCompanyBundle(resolvedShopId);
     const theme = useAppTheme();
+    const bottomTabBarHeight = useContext(BottomTabBarHeightContext) ?? 0;
     const [activeTab, setActiveTab] = useState<ShopTab>("services");
     const company = companyQuery.data?.company;
     const services = companyQuery.data?.services ?? [];
@@ -191,7 +193,7 @@ export function ShopDetailsScreen() {
                 style={[
                     styles.ctaWrap,
                     {
-                        backgroundColor: theme.backgroundCanvas,
+                        bottom: bottomTabBarHeight + 8,
                     },
                 ]}
             >
