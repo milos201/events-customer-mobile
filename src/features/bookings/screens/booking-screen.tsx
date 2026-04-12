@@ -1,6 +1,7 @@
+import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
 import { addDays, format, isToday, isTomorrow, parse, parseISO } from "date-fns";
 import { type Href, useLocalSearchParams, usePathname, useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -169,6 +170,7 @@ export function BookingScreen() {
     const pathname = usePathname();
     const insets = useSafeAreaInsets();
     const theme = useAppTheme();
+    const bottomTabBarHeight = useContext(BottomTabBarHeightContext) ?? 0;
     const { status } = useAuthSession();
     const { shopId, serviceId } = useLocalSearchParams<BookingSearchParams>();
     const resolvedShopId = shopId ?? "shop";
@@ -307,7 +309,7 @@ export function BookingScreen() {
                     styles.content,
                     {
                         paddingTop: insets.top + Spacing.md,
-                        paddingBottom: insets.bottom + Spacing.xl + (step === 4 ? 96 : 0),
+                        paddingBottom: insets.bottom + Spacing.xl + bottomTabBarHeight + (step === 4 ? 96 : 0),
                     },
                 ]}
                 keyboardShouldPersistTaps="handled"
@@ -616,7 +618,8 @@ export function BookingScreen() {
                         styles.ctaWrap,
                         {
                             backgroundColor: theme.backgroundCanvas,
-                            paddingBottom: insets.bottom + Spacing.sm,
+                            paddingBottom: Spacing.sm,
+                            bottom: bottomTabBarHeight + Spacing.xs,
                         },
                     ]}
                 >
