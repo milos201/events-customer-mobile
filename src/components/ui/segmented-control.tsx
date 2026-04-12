@@ -16,7 +16,6 @@ type SegmentedControlProps<T extends string> = {
     value: T;
     onChange: (value: T) => void;
     size?: "sm" | "lg";
-    variant?: "tint" | "surface";
     shadowed?: boolean;
 };
 
@@ -25,24 +24,18 @@ export function SegmentedControl<T extends string>({
     value,
     onChange,
     size = "sm",
-    variant = "tint",
     shadowed = false,
 }: SegmentedControlProps<T>) {
     const theme = useAppTheme();
     const sizeStyles = size === "lg" ? LARGE_SIZE_STYLES : SMALL_SIZE_STYLES;
-    const isSurfaceVariant = variant === "surface";
 
     return (
         <View
             style={[
                 styles.row,
-                isSurfaceVariant
-                    ? [
-                          styles.surfaceRow,
-                          shadowed ? Shadows.card : null,
-                          { backgroundColor: theme.surface, borderColor: theme.border },
-                      ]
-                    : null,
+                styles.surfaceRow,
+                shadowed ? Shadows.card : null,
+                { backgroundColor: theme.surface, borderColor: theme.border },
             ]}
         >
             {options.map((option) => {
@@ -55,22 +48,12 @@ export function SegmentedControl<T extends string>({
                         style={[
                             styles.segment,
                             sizeStyles.segment,
-                            isSurfaceVariant
-                                ? [
-                                      isSelected ? styles.surfaceSegmentActive : styles.surfaceSegmentIdle,
-                                      shadowed && isSelected ? Shadows.card : null,
-                                      {
-                                          backgroundColor: isSelected ? theme.surfaceElevated : "transparent",
-                                          borderColor: isSelected ? theme.border : "transparent",
-                                      },
-                                  ]
-                                : [
-                                      styles.tintSegment,
-                                      {
-                                          backgroundColor: isSelected ? theme.tint : theme.surface,
-                                          borderColor: isSelected ? theme.tint : theme.border,
-                                      },
-                                  ],
+                            isSelected ? styles.surfaceSegmentActive : styles.surfaceSegmentIdle,
+                            shadowed && isSelected ? Shadows.card : null,
+                            {
+                                backgroundColor: isSelected ? theme.tint : "transparent",
+                                borderColor: isSelected ? theme.tint : "transparent",
+                            },
                         ]}
                     >
                         <View style={styles.segmentContent}>
@@ -79,13 +62,7 @@ export function SegmentedControl<T extends string>({
                                     styles.label,
                                     sizeStyles.label,
                                     {
-                                        color: isSurfaceVariant
-                                            ? isSelected
-                                                ? theme.text
-                                                : theme.textMuted
-                                            : isSelected
-                                              ? theme.tintForeground
-                                              : theme.text,
+                                        color: isSelected ? theme.tintForeground : theme.textMuted,
                                     },
                                 ]}
                             >
@@ -137,9 +114,6 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
-    },
-    tintSegment: {
-        borderWidth: StyleSheet.hairlineWidth,
     },
     surfaceSegmentActive: {
         borderWidth: StyleSheet.hairlineWidth,

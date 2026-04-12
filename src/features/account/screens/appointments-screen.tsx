@@ -211,7 +211,6 @@ export function AppointmentsScreen() {
             <SegmentedControl
                 value={activeTab}
                 onChange={setActiveTab}
-                variant="surface"
                 size="lg"
                 shadowed
                 options={[

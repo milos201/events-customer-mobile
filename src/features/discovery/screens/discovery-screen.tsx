@@ -5,7 +5,6 @@ import MapView, { Marker, type Region } from "react-native-maps";
 
 import type { PublicCompany } from "@/api/types";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { ScreenShell } from "@/components/ui/screen-shell";
 import { SegmentedControl } from "@/components/ui/segmented-control";
@@ -83,38 +82,43 @@ function isCompanyInRegion(company: PublicCompany & { latitude: number; longitud
 }
 
 function CompanyCard({ company, theme }: { company: PublicCompany; theme: ReturnType<typeof useAppTheme> }) {
-    const meta = [company.city, company.address].filter(Boolean).join(" · ");
+    const address = [company.address, company.city].filter(Boolean).join(", ") || "Location details coming soon";
     const distance = formatDistance(company.distanceMeters);
 
     return (
         <Link href={{ pathname: "/shops/[shopId]", params: { shopId: company.slug } }} asChild>
-            <Pressable>
-                <ThemedView
+            <Pressable style={({ pressed }) => (pressed ? styles.companyCardPressed : null)}>
+                <View
                     style={[
                         styles.companyCard,
                         Shadows.card,
                         { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
                     ]}
                 >
-                    <View style={styles.companyHeader}>
-                        <View style={styles.companyHeaderText}>
-                            <ThemedText type="defaultSemiBold">{company.name}</ThemedText>
-                            {meta ? (
-                                <ThemedText style={[styles.metaText, { color: theme.textMuted }]} numberOfLines={2}>
-                                    {meta}
+                    <View style={styles.companyTopRow}>
+                        <View style={styles.companyCopy}>
+                            <ThemedText type="defaultSemiBold" style={styles.companyName} numberOfLines={1}>
+                                {company.name}
+                            </ThemedText>
+                            <View style={styles.addressRow}>
+                                <IconSymbol color={theme.textSubtle} name="mappin.and.ellipse" size={16} />
+                                <ThemedText style={[styles.addressText, { color: theme.textMuted }]} numberOfLines={1}>
+                                    {address}
                                 </ThemedText>
-                            ) : null}
+                            </View>
                         </View>
                         <View style={styles.cardAside}>
+                            <View style={[styles.statusPill, { backgroundColor: theme.successSurface }]}>
+                                <ThemedText style={[styles.statusPillText, { color: theme.success }]}>Open</ThemedText>
+                            </View>
                             {distance ? (
                                 <ThemedText style={[styles.distanceText, { color: theme.textMuted }]}>
                                     {distance}
                                 </ThemedText>
                             ) : null}
-                            <ThemedText style={[styles.arrow, { color: theme.textSubtle }]}>›</ThemedText>
                         </View>
                     </View>
-                </ThemedView>
+                </View>
             </Pressable>
         </Link>
     );
@@ -155,32 +159,42 @@ export function DiscoveryScreen() {
                     </ThemedText>
                 </View>
             }
+            layout="detail"
         >
             <View style={styles.stack}>
-                <TextInput
-                    value={query}
-                    onChangeText={(nextValue) => {
-                        setQuery(nextValue);
-                    }}
-                    placeholder="Search shops"
-                    placeholderTextColor={theme.textSubtle}
-                    autoCapitalize="words"
-                    autoCorrect={false}
-                    returnKeyType="search"
-                    clearButtonMode="while-editing"
+                <View
                     style={[
-                        styles.searchInput,
-                        {
-                            color: theme.text,
-                            backgroundColor: theme.surface,
-                            borderColor: theme.border,
-                        },
+                        styles.searchShell,
+                        Shadows.card,
+                        { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
                     ]}
-                />
+                >
+                    <IconSymbol color={theme.textSubtle} name="magnifyingglass" size={20} />
+                    <TextInput
+                        value={query}
+                        onChangeText={(nextValue) => {
+                            setQuery(nextValue);
+                        }}
+                        placeholder="Search shops"
+                        placeholderTextColor={theme.textSubtle}
+                        autoCapitalize="words"
+                        autoCorrect={false}
+                        returnKeyType="search"
+                        clearButtonMode="while-editing"
+                        style={[
+                            styles.searchInput,
+                            {
+                                color: theme.text,
+                            },
+                        ]}
+                    />
+                </View>
 
                 <SegmentedControl
                     value={mode}
                     onChange={setMode}
+                    size="lg"
+                    shadowed
                     options={[
                         { value: "list", label: "List" },
                         { value: "map", label: "Map" },
@@ -198,7 +212,7 @@ export function DiscoveryScreen() {
                 ) : null}
 
                 {!companiesQuery.isPending && !companiesQuery.isError && visibleCompanies.length === 0 ? (
-                    <ThemedView
+                    <View
                         style={[
                             styles.emptyCard,
                             Shadows.card,
@@ -209,7 +223,7 @@ export function DiscoveryScreen() {
                         <ThemedText style={[styles.emptyText, { color: theme.textMuted }]}>
                             Try a different search.
                         </ThemedText>
-                    </ThemedView>
+                    </View>
                 ) : null}
 
                 {!companiesQuery.isPending && !companiesQuery.isError && visibleCompanies.length > 0 ? (
@@ -281,12 +295,20 @@ const styles = StyleSheet.create({
     locationTitle: {
         lineHeight: 40,
     },
-    searchInput: {
-        minHeight: 52,
-        borderRadius: Radius.md,
-        paddingHorizontal: Spacing.md,
-        fontSize: 16,
+    searchShell: {
+        minHeight: 56,
+        borderRadius: Radius.lg,
         borderWidth: StyleSheet.hairlineWidth,
+        paddingHorizontal: Spacing.md,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: Spacing.sm,
+    },
+    searchInput: {
+        flex: 1,
+        minHeight: 54,
+        paddingVertical: 0,
+        fontSize: 16,
     },
     statusText: {
         ...Typography.bodySm,
@@ -306,37 +328,56 @@ const styles = StyleSheet.create({
         borderWidth: StyleSheet.hairlineWidth,
     },
     map: {
-        height: 440,
+        height: 420,
         width: "100%",
     },
     companyCard: {
+        minHeight: 96,
         borderRadius: Radius.lg,
         borderWidth: StyleSheet.hairlineWidth,
         paddingHorizontal: Spacing.md,
-        paddingVertical: 14,
+        paddingVertical: Spacing.md,
     },
-    companyHeader: {
+    companyCardPressed: {
+        opacity: 0.78,
+    },
+    companyTopRow: {
         flexDirection: "row",
         justifyContent: "space-between",
         gap: Spacing.sm,
         alignItems: "flex-start",
     },
-    companyHeaderText: {
+    companyCopy: {
         flex: 1,
-        gap: 2,
+        gap: 6,
+    },
+    companyName: {
+        fontSize: 20,
+        lineHeight: 24,
+    },
+    addressRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: Spacing.xs,
+    },
+    addressText: {
+        ...Typography.bodySm,
+        flex: 1,
     },
     cardAside: {
         alignItems: "flex-end",
-        gap: 2,
+        gap: Spacing.xs,
     },
-    metaText: {
-        ...Typography.bodySm,
+    statusPill: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: Radius.full,
+    },
+    statusPillText: {
+        ...Typography.label,
+        fontWeight: "700",
     },
     distanceText: {
         ...Typography.label,
-    },
-    arrow: {
-        fontSize: 24,
-        lineHeight: 24,
     },
 });
